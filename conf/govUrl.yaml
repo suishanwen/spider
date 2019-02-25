@@ -1,4 +1,5 @@
 gov:
   beijing:
+    org: 北京市卫生健康委员会
     url: http://www.beijing.gov.cn
     pages: [[法律法规,/zfxxgk/110088/flfg22/list.shtml],[规范性文件,/zfxxgk/110088/gfxwj22/list.shtml]]

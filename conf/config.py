@@ -7,6 +7,7 @@ class Const(object):
 
     GOV_YAML = "conf/govUrl.yaml"
     BASE_FILE_PATH = os.path.abspath(".") + "/file"
+    DOWNLOAD_PATH = os.path.abspath(".") + "/download"
 
     def __setattr__(self, name, value):
         if name in self.__dict__.keys():
