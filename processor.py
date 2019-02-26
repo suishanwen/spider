@@ -62,7 +62,7 @@ def get_article(_chrome, page_info):
                                  pub_time=public_date)
         Logger.info("写入文章数据成功！")
         get_ext(tmp_chrome, page_info, dir_name, pk_article)
-    Logger.info("当前页 %s 抓取完成 " % (tmp_chrome.current_url()))
+    Logger.info("当前页 %s 抓取完成 " % (_chrome.current_url()))
     tmp_chrome.quit()
 
 
