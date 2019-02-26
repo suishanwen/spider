@@ -90,13 +90,15 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
             time.sleep(1)
             if not file.downloads_done(file_name):
                 try:
+                    Logger.warning("%s 开始断点下载！" % href)
                     py_download(href, download_full_path)
                 except Exception:
-                    Logger.warning("%s py_download下载失败！" % href)
+                    Logger.warning("%s 断点下载失败！" % href)
                     try:
+                        Logger.warning("%s 开始普通下载！" % href)
                         simple_download(href, download_full_path)
                     except Exception:
-                        Logger.warning("%s simple_download下载失败！" % href)
+                        Logger.warning("%s 普通下载失败！" % href)
             if file.move_file(download_full_path, full_path):
                 mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
                                      pk_artcl=pk_article,
