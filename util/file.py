@@ -112,12 +112,14 @@ def get_file(url):
 def move_file(src_file, dst_file):
     if not os.path.isfile(src_file):
         logging.error("%s not exist!" % (src_file))
+        return False
     else:
         fpath, fname = os.path.split(dst_file)  # 分离文件名和路径
         if not os.path.exists(fpath):
             os.makedirs(fpath)  # 创建路径
         shutil.move(src_file, dst_file)  # 移动文件
         logging.info("移动下载文件，归档重命名 %s -> %s" % (src_file, dst_file))
+        return True
 
 
 def downloads_done():

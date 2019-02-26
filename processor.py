@@ -88,13 +88,13 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
             ext.click()
             time.sleep(1)
             file.downloads_done()
-            file.move_file(download_full_path, full_path)
-            mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
-                                 pk_artcl=pk_article,
-                                 file_type_name=extension,
-                                 file_name=file_name,
-                                 file_path=full_path)
-            Logger.info("写入文章附件mapping成功！")
+            if file.move_file(download_full_path, full_path):
+                mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
+                                     pk_artcl=pk_article,
+                                     file_type_name=extension,
+                                     file_name=file_name,
+                                     file_path=full_path)
+                Logger.info("写入文章附件mapping成功！")
 
 
 def __main__(page_info):
