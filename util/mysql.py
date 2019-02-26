@@ -4,10 +4,6 @@ import uuid
 
 
 def get_connect():
-    # conn = pymysql.connect(
-    #     host="10.10.201.22", passwd="wU$S#8Hk@tC9coCr",
-    #     user="hcuser", port=3306, db="hcinfo", charset="utf8"
-    # )
     conn = pymysql.connect(
         host="127.0.0.1",
         port=3306,
