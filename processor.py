@@ -62,8 +62,8 @@ def get_article(_chrome, page_info):
                                  pub_time=public_date)
         Logger.info("写入文章数据成功！")
         get_ext(tmp_chrome, page_info, dir_name, pk_article)
-    tmp_chrome.quit()
     Logger.info("snatch at %s successful , prepared to next", tmp_chrome.current_url())
+    tmp_chrome.quit()
 
 
 # 获取文章附件
