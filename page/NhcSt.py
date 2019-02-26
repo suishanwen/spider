@@ -22,6 +22,9 @@ class NhcSt(PageInfo):
         href = a.get_attribute("href")
         return title, href, public_date
 
+    def check_content_not_exist(self, _chrome):
+        return _chrome.page_source.find('<h1>Not Found</h1>') != -1
+
     def get_content(self, _chrome):
         return _chrome.find_class("mb50").get_attribute('innerHTML')
 

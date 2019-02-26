@@ -7,7 +7,7 @@ class Beijing(PageInfo):
     def get_page_count(self, _chrome):
         return int(_chrome.find_class("laypage_last").get_attribute('data-page'))
 
-    def get_sub_page_url(self, _chrome, page_index):
+    def get_sub_page_url(self, page_index):
         return "%s#!page=%d" % (self.url, page_index)
 
     def get_content_list(self, _chrome):
@@ -19,6 +19,9 @@ class Beijing(PageInfo):
         title = str(public_date + "_" + a.get_attribute("title"))
         href = a.get_attribute("href")
         return title, href, public_date
+
+    def check_content_not_exist(self, _chrome):
+        return _chrome.page_source.find('<h1>Not Found</h1>') != -1
 
     def get_content(self, _chrome):
         return _chrome.find_class("content_con").get_attribute('innerHTML')

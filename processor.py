@@ -31,12 +31,23 @@ def get_article(_chrome, page_info):
     content_list = page_info.get_content_list(_chrome)
     tmp_chrome = chrome.Chrome()
     for i in range(len(content_list)):
+        # 获取时间_标题、原始链接、发布时间
         title, href, public_date = page_info.get_content_info(_chrome, content_list[i])
+        # 检查是否已爬取
+        if mysql.check_exist(title, href):
+            Logger.info("%s(%s)已抓取,跳过" % (title, href))
+            continue
         dir_name = file.validate_title(
             title)
         Logger.info("requsts to : %s " % dir_name)
+        # 打开原始链接
         tmp_chrome.get(href)
         time.sleep(1)
+        # 检查是否正常打开页面
+        if page_info.check_content_not_exist():
+            Logger.info("文章不存在，跳过！")
+            continue
+        # 获取正文
         content = page_info.get_content(tmp_chrome)
         full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
         if file.write_to_file(full_path, content):
@@ -46,13 +57,13 @@ def get_article(_chrome, page_info):
                                  pk_org=page_info.pk_org,
                                  pk_channel=page_info.pk_channel,
                                  title=title,
-                                 src_url=str(tmp_chrome.current_url),
+                                 src_url=str(tmp_chrome.current_url()),
                                  path=full_path,
                                  pub_time=public_date)
         Logger.info("写入文章数据成功！")
         get_ext(tmp_chrome, page_info, dir_name, pk_article)
     tmp_chrome.quit()
-    Logger.info("snatch at %s successful , prepared to next", _chrome.current_url)
+    Logger.info("snatch at %s successful , prepared to next", tmp_chrome.current_url())
 
 
 # 获取文章附件
