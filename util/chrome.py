@@ -28,6 +28,9 @@ class Chrome():
         params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': download_dir}}
         command_result = driver.execute("send_command", params)
 
+    def clear_cookies(self):
+        self.chrome.delete_all_cookies()
+
     def find_class(self, class_name, count=1):
         result = ''
         try:
@@ -35,9 +38,10 @@ class Chrome():
         except selenium.common.exceptions.NoSuchElementException:
             Logger.warn("未找到class[%s]，刷新页面%d次" % (class_name, count))
             count += 1
-            if count < 10:
+            if count < 30:
+                self.clear_cookies()
                 self.chrome.refresh()
-                time.sleep(5)
+                time.sleep(10)
                 return self.find_class(class_name, count)
             else:
                 Logger.error("连续刷新页面%d次未找到class[%s]" % (count, class_name))
@@ -54,6 +58,7 @@ class Chrome():
                 return result
             except selenium.common.exceptions.NoSuchElementException:
                 Logger.warn("未找到class[%s]" % class_name)
+        self.clear_cookies()
         self.chrome.refresh()
         time.sleep(10)
         count += 1
