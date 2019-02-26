@@ -23,9 +23,11 @@ class NhcSt(PageInfo):
         return title, href, public_date
 
     def check_content_not_exist(self, _chrome):
-        return _chrome.page_source.find('<h1>Not Found</h1>') != -1
+        return _chrome.page_source().find('<h1>Not Found</h1>') != -1
 
     def get_content(self, _chrome):
+        if _chrome.page_source().find("年鉴") != -1:
+            return _chrome.multi_find_class(["mb50", "WordSection1"]).get_attribute('innerHTML')
         return _chrome.find_class("mb50").get_attribute('innerHTML')
 
     def get_ext_list(self, _chrome):

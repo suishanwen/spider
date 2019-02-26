@@ -44,6 +44,21 @@ class Chrome():
                 exit()
         return result
 
+    def multi_find_class(self, class_names, count=1):
+        if count > 10:
+            Logger.error("连续刷新页面%d次未找到classes[%s]" % (count, class_names))
+            exit()
+        for class_name in class_names:
+            try:
+                result = self.chrome.find_element_by_class_name(class_name)
+                return result
+            except selenium.common.exceptions.NoSuchElementException:
+                Logger.warn("未找到class[%s]" % class_name)
+        self.chrome.refresh()
+        time.sleep(5)
+        count += 1
+        return self.multi_find_class(class_names, count)
+
     def get(self, url):
         Logger.info("请求url:%s" % url)
         self.chrome.get(url)
@@ -53,3 +68,6 @@ class Chrome():
 
     def current_url(self):
         return self.chrome.current_url
+
+    def page_source(self):
+        return self.chrome.page_source

@@ -44,7 +44,7 @@ def get_article(_chrome, page_info):
         tmp_chrome.get(href)
         time.sleep(1)
         # 检查是否正常打开页面
-        if page_info.check_content_not_exist():
+        if page_info.check_content_not_exist(tmp_chrome):
             Logger.info("文章不存在，跳过！")
             continue
         # 获取正文
