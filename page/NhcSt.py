@@ -31,4 +31,4 @@ class NhcSt(PageInfo):
         return _chrome.find_class("mb50").get_attribute('innerHTML')
 
     def get_ext_list(self, _chrome):
-        return _chrome.chrome.find_element_by_class_name("fujian").find_elements_by_tag_name("a")
+        return _chrome.chrome.find_element_by_class_name("con").find_elements_by_tag_name("a")
