@@ -5,6 +5,7 @@ from conf.config import Const
 from util import mysql, chrome, file
 from util.logger import Logger
 import selenium.common.exceptions
+from util.download import py_download, simple_download
 
 
 # 获取所有分页页面
@@ -87,7 +88,15 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
             full_path = "%s/%s" % (path, file_name)
             ext.click()
             time.sleep(1)
-            file.downloads_done()
+            if not file.downloads_done(file_name):
+                try:
+                    py_download(href, download_full_path)
+                except Exception:
+                    Logger.warning("%s py_download下载失败！" % href)
+                    try:
+                        simple_download(href, download_full_path)
+                    except Exception:
+                        Logger.warning("%s simple_download下载失败！" % href)
             if file.move_file(download_full_path, full_path):
                 mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
                                      pk_artcl=pk_article,

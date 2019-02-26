@@ -122,9 +122,16 @@ def move_file(src_file, dst_file):
         return True
 
 
-def downloads_done():
+def downloads_done(file_name):
+    succ = False
     for i in os.listdir(Const.DOWNLOAD_PATH):
         if ".crdownload" in i:
             time.sleep(1)
-            downloads_done()
-    logging.info("下载附件完成！")
+            downloads_done(file_name)
+        if file_name in i:
+            succ = True
+    if succ:
+        logging.info("chrome下载附件完成！")
+    else:
+        logging.info("chrome下载附件失败！")
+    return succ
