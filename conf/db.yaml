@@ -1,0 +1,7 @@
+database:
+  host: 10.10.201.22
+  user: pubinfo_dev_user
+  passwd: ZuqsvE0$0Vn0Qg@5
+  port: 3306
+  db: pubinfo_dev
+  charset: utf8

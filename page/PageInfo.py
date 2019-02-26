@@ -1,14 +1,17 @@
 class PageInfo(object):
     section = ""
-    org = ""
+    pk_org = ""
+    org_name = ""
+    pk_channel = ""
     domain = ""
     name = ""
     url = ""
+    web_site_url = ""
 
     def get_page_count(self, _chrome):
         pass
 
-    def get_sub_page_url(self, _chrome, page_index):
+    def get_sub_page_url(self, page_index):
         pass
 
     def get_content_list(self, _chrome):

@@ -6,6 +6,7 @@ class Const(object):
         pass
 
     GOV_YAML = "conf/govUrl.yaml"
+    DB_YAML = "conf/db.yaml"
     BASE_FILE_PATH = os.path.abspath(".") + "/file"
     DOWNLOAD_PATH = os.path.abspath(".") + "/download"
 
