@@ -68,12 +68,12 @@ class Chrome():
         Logger.info("请求url:%s" % url)
         self.chrome.get(url)
         if self.page_source().find('503 Service Unavailable') != -1:
-            Logger.info("503 Service Unavailable, %s" % url)
+            Logger.warn("503 Service Unavailable, %s" % url)
 
     def refresh(self):
         self.chrome.refresh()
         if self.page_source().find('503 Service Unavailable') != -1:
-            Logger.info("503 Service Unavailable")
+            Logger.warn("503 Service Unavailable")
 
     def quit(self):
         self.chrome.quit()
