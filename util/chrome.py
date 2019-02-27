@@ -40,7 +40,7 @@ class Chrome():
             count += 1
             if count < 30:
                 self.clear_cookies()
-                self.chrome.refresh()
+                self.refresh()
                 time.sleep(10)
                 return self.find_class(class_name, count)
             else:
@@ -59,7 +59,7 @@ class Chrome():
             except selenium.common.exceptions.NoSuchElementException:
                 Logger.warn("未找到class[%s]" % class_name)
         self.clear_cookies()
-        self.chrome.refresh()
+        self.refresh()
         time.sleep(10)
         count += 1
         return self.multi_find_class(class_names, count)
@@ -69,6 +69,11 @@ class Chrome():
         self.chrome.get(url)
         if self.page_source().find('503 Service Unavailable') != -1:
             Logger.info("503 Service Unavailable, %s" % url)
+
+    def refresh(self):
+        self.chrome.refresh()
+        if self.page_source().find('503 Service Unavailable') != -1:
+            Logger.info("503 Service Unavailable")
 
     def quit(self):
         self.chrome.quit()
