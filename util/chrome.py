@@ -39,7 +39,6 @@ class Chrome():
             Logger.warn("未找到class[%s]，刷新页面%d次" % (class_name, count))
             count += 1
             if count < 30:
-                self.clear_cookies()
                 self.refresh()
                 time.sleep(10)
                 return self.find_class(class_name, count)
@@ -58,7 +57,6 @@ class Chrome():
                 return result
             except selenium.common.exceptions.NoSuchElementException:
                 Logger.warn("未找到class[%s]" % class_name)
-        self.clear_cookies()
         self.refresh()
         time.sleep(10)
         count += 1
@@ -71,7 +69,10 @@ class Chrome():
             Logger.warn("503 Service Unavailable, %s" % url)
 
     def refresh(self):
+        self.clear_cookies()
+        time.sleep(0.5)
         self.chrome.refresh()
+        time.sleep(0.5)
         if self.page_source().find('503 Service Unavailable') != -1:
             Logger.warn("503 Service Unavailable")
 
