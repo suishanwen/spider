@@ -76,7 +76,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
         Logger.info("未找到附件!")
     for ext in ext_list:
         href = ext.get_attribute('href')
-        if file.is_appendix_file(href):
+        if href and file.is_appendix_file(href):
             extension = file.get_file_extension(href)
             title = ext.text
             if title.find('.%s' % extension) != -1:
