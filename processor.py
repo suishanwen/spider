@@ -85,7 +85,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
             local_file_name = href[href.rfind("/") + 1: len(href)]
             download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, local_file_name)
-            full_path = "%s/%s" % (path, file_name        
+            full_path = "%s/%s" % (path, file_name)    
             try:
                 ext.click()                                   
                 time.sleep(1)
