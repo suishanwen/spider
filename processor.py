@@ -5,7 +5,7 @@ from conf.config import Const
 from util import mysql, chrome, file
 from util.logger import Logger
 import selenium.common.exceptions
-from util.download import py_download, simple_download
+from util.download import py_download
 
 
 # 获取所有分页页面
@@ -83,12 +83,14 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
         if href and file.is_appendix_file(href):
             extension = file.get_file_extension(href)
             title = ext.text
+            origin_file_name = href[href.rfind("/") + 1: len(href)]
+            if not title:
+                title = origin_file_name
             if title.find('.%s' % extension) != -1:
                 title = title.replace('.%s' % extension, "")
             file_name = "%s.%s" % (title, extension)
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
-            local_file_name = href[href.rfind("/") + 1: len(href)]
-            download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, local_file_name)
+            download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
             full_path = "%s/%s" % (path, file_name)
             # try:
             #     ext.click()
