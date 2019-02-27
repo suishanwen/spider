@@ -105,6 +105,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
                     if py_download(href, download_full_path):
                         dl_count = 0
                 except Exception:
+                    dl_count += 1
                     Logger.warning("%s 断点下载失败！" % href)
                     time.sleep(3)
             if file.move_file(download_full_path, full_path):
