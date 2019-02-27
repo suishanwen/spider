@@ -6,6 +6,7 @@ from util import mysql, chrome, file
 from util.logger import Logger
 import selenium.common.exceptions
 from util.download import py_download
+import traceback
 
 
 # 获取所有分页页面
@@ -53,20 +54,26 @@ def get_article(_chrome, page_info):
             Logger.info("文章不存在，跳过！")
             continue
         # 获取正文
-        content = page_info.get_content(tmp_chrome)
-        full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
-        if file.write_to_file(full_path, content):
-            Logger.info("摘取正文，保存页面成功！")
-        pk_article = str(uuid.uuid4())
-        mysql.insert_html_record(pk_artcl=pk_article,
-                                 pk_org=page_info.pk_org,
-                                 pk_channel=page_info.pk_channel,
-                                 title=title,
-                                 src_url=str(tmp_chrome.current_url()),
-                                 path=full_path,
-                                 pub_time=public_date)
-        Logger.info("写入文章数据成功！")
-        get_ext(tmp_chrome, page_info, dir_name, pk_article)
+        try:
+            content = page_info.get_content(tmp_chrome)
+            full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
+            if file.write_to_file(full_path, content):
+                Logger.info("摘取正文，保存页面成功！")
+                pk_article = str(uuid.uuid4())
+                mysql.insert_html_record(pk_artcl=pk_article,
+                                         pk_org=page_info.pk_org,
+                                         pk_channel=page_info.pk_channel,
+                                         title=title,
+                                         src_url=str(tmp_chrome.current_url()),
+                                         path=full_path,
+                                         pub_time=public_date)
+                Logger.info("写入文章数据成功！")
+                get_ext(tmp_chrome, page_info, dir_name, pk_article)
+            else:
+                mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "正文保存失败！")
+        except Exception:
+            mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(),
+                                   "文章获取异常！%s" % traceback.format_exc())
     Logger.info("当前页 %s 抓取完成 " % (_chrome.current_url()))
     tmp_chrome.quit()
 
@@ -108,13 +115,15 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
                     dl_count += 1
                     Logger.warning("%s 断点下载失败！" % href)
                     time.sleep(3)
-            if file.move_file(download_full_path, full_path):
+            if dl_count == 0 and file.move_file(download_full_path, full_path):
                 mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
                                      pk_artcl=pk_article,
                                      file_type_name=extension,
                                      file_name=file_name,
                                      file_path=full_path)
                 Logger.info("写入文章附件mapping成功！")
+            else:
+                mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "附件下载失败！")
 
 
 def __main__(page_info):

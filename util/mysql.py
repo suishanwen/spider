@@ -46,6 +46,27 @@ def insert_mapping(pk_artcl_file, pk_artcl, file_type_name, file_name, file_path
         execute_sql(sql[0])
 
 
+# 插入爬取失败记录
+def set_toretry_task(pk_task, pk_webchannel, src_url, errmsg):
+    if not check_toretry_task_exist(pk_webchannel, src_url):
+        sql = [
+            "insert into tb_toretry_task (pk_task, pk_webchannel, src_url,errmsg,total_times) values ('%s', '%s' ,'%s','%s','%s')"
+            % (pk_task, pk_webchannel, src_url, errmsg, 0)]
+    else:
+        sql = [
+            "update tb_toretry_task set errmsg='%s',total_times=total_times+1 where pk_webchannel = '%s' and src_url ='%s'"
+            % (errmsg, pk_webchannel, src_url)]
+    execute_sql(sql[0])
+
+
+# 插入爬取失败记录
+def stop_toretry_task(pk_webchannel, src_url):
+    sql = [
+        "update tb_toretry_task set is_stop=1 where pk_webchannel = '%s' and src_url ='%s'"
+        % (pk_webchannel, src_url)]
+    execute_sql(sql[0])
+
+
 # 检查html主记录 存在
 def check_exist(title, src_url):
     sql = [
@@ -64,6 +85,20 @@ def check_mapping_exist(file_name, file_path):
     sql = [
         "select count(1) from mapping_artcl_file where file_name = '%s' and file_path='%s'" % (
             file_name, file_path)]
+    conn = get_connect()
+    cur = conn.cursor()
+    cur.execute(sql[0])
+    result = cur.fetchall()
+    cur.close()
+    conn.close()
+    return result[0][0] > 0
+
+
+# 检查爬取失败记录 存在
+def check_toretry_task_exist(pk_webchannel, src_url):
+    sql = [
+        "select count(1) from tb_toretry_task where pk_webchannel = '%s' and src_url='%s'" % (
+            pk_webchannel, src_url)]
     conn = get_connect()
     cur = conn.cursor()
     cur.execute(sql[0])
