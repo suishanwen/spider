@@ -29,7 +29,7 @@ class Chrome():
         command_result = driver.execute("send_command", params)
 
     def clear_cookies(self):
-        Logger.info("清理所以cookie")
+        Logger.info("清理所有cookie")
         self.chrome.delete_all_cookies()
 
     def find_class(self, class_name, count=1):
