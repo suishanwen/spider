@@ -90,22 +90,21 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
             local_file_name = href[href.rfind("/") + 1: len(href)]
             download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, local_file_name)
             full_path = "%s/%s" % (path, file_name)
-            try:
-                ext.click()
-                time.sleep(1)
-            except Exception:
-                Logger.warning("%s chrome下载失败！" % href)
-            if not file.downloads_done(file_name):
+            # try:
+            #     ext.click()
+            #     time.sleep(1)
+            # except Exception:
+            #     Logger.warning("%s chrome下载失败！" % href)
+            # if not file.downloads_done(file_name):
+            dl_count = 1
+            while 1 <= dl_count <= 10:
                 try:
-                    Logger.warning("%s 开始断点下载！" % href)
-                    py_download(href, download_full_path)
+                    Logger.warning("%s 开始第%d次断点下载！" % (href, dl_count))
+                    if py_download(href, download_full_path):
+                        dl_count = 0
                 except Exception:
                     Logger.warning("%s 断点下载失败！" % href)
-                    try:
-                        Logger.warning("%s 开始普通下载！" % href)
-                        simple_download(href, download_full_path)
-                    except Exception:
-                        Logger.warning("%s 普通下载失败！" % href)
+                    time.sleep(3)
             if file.move_file(download_full_path, full_path):
                 mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
                                      pk_artcl=pk_article,

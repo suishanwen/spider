@@ -53,8 +53,11 @@ def py_download(url, file_path):
                 done = int(50 * temp_size / total_size)
                 sys.stdout.write("\r[%s%s] %d%%" % ('█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
                 sys.stdout.flush()
-    Logger.info(" %s 下载完成, 总共：%d ,当前：%d" % (url, total_size, temp_size))
-    print()  # 避免上面\r 回车符
+    if total_size == temp_size:
+        Logger.info(" %s 下载完成, 总共：%d ,当前：%d" % (url, total_size, temp_size))
+        print()  # 避免上面\r 回车符
+        return True
+    return False
 
 
 def simple_download(url, file_path):
@@ -64,4 +67,3 @@ def simple_download(url, file_path):
             if chunk:
                 f.write(chunk)
                 f.flush()
-
