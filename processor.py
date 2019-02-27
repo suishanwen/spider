@@ -1,6 +1,6 @@
 import uuid
 import time
-from util.yaml import yaml_read
+from util.yaml import yaml_read, yaml_write_pages
 from conf.config import Const
 from util import mysql, chrome, file
 from util.logger import Logger
@@ -14,17 +14,21 @@ def get_page(page_info):
     _chrome.get(page_info.url)
     time.sleep(1)
     page_count = page_info.get_page_count(_chrome)
-    get_article(_chrome, page_info)
+    if page_info.page_exec == 0:
+        get_article(_chrome, page_info)
+        page_info.pages[page_info.index][2] = 1
+        yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
     _chrome.quit()
-    for i in range(page_count):
-        page_index = i + 1
-        if page_index == 1:
+    for page_index in range(2, page_count + 1):
+        if page_index <= page_info.page_exec:
             continue
         _chrome = chrome.Chrome()
         _chrome.get(page_info.get_sub_page_url(page_index))
         time.sleep(1)
         get_article(_chrome, page_info)
         _chrome.quit()
+        page_info.pages[page_info.index][2] = page_index
+        yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
 
 
 # 获取分页下文章
@@ -85,12 +89,12 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
             local_file_name = href[href.rfind("/") + 1: len(href)]
             download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, local_file_name)
-            full_path = "%s/%s" % (path, file_name)    
+            full_path = "%s/%s" % (path, file_name)
             try:
-                ext.click()                                   
+                ext.click()
                 time.sleep(1)
             except Exception:
-                Logger.warning("%s chrome下载失败！" % href)                     
+                Logger.warning("%s chrome下载失败！" % href)
             if not file.downloads_done(file_name):
                 try:
                     Logger.warning("%s 开始断点下载！" % href)
@@ -115,10 +119,13 @@ def __main__(page_info):
     page_info.org_name = yaml_read(Const.GOV_YAML, ("gov", page_info.section, "org"))
     page_info.domain = yaml_read(Const.GOV_YAML, ("gov", page_info.section, "url"))
     page_info.web_site_url = yaml_read(Const.GOV_YAML, ("gov", page_info.section, "web_site_url"))
-    pages = yaml_read(Const.GOV_YAML, ("gov", page_info.section, "pages"))
+    page_info.pages = yaml_read(Const.GOV_YAML, ("gov", page_info.section, "pages"))
     page_info.pk_org = mysql.get_pk_org(page_info.org_name)
     page_info.pk_channel = mysql.get_pk_channel(page_info.pk_org, page_info.web_site_url)
-    for page in pages:
+    for index in range(len(page_info.pages)):
+        page = page_info.pages[index]
+        page_info.index = index
         page_info.name = page[0]
         page_info.url = page_info.domain + page[1]
+        page_info.page_exec = page[2]
         get_page(page_info)

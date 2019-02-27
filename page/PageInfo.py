@@ -4,9 +4,12 @@ class PageInfo(object):
     org_name = ""
     pk_channel = ""
     domain = ""
+    web_site_url = ""
+    pages = ""
+    index = 0
     name = ""
     url = ""
-    web_site_url = ""
+    page_exec = 0
 
     def get_page_count(self, _chrome):
         pass
