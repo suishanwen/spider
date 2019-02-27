@@ -60,15 +60,15 @@ def get_article(_chrome, page_info):
             if file.write_to_file(full_path, content):
                 Logger.info("摘取正文，保存页面成功！")
                 pk_article = str(uuid.uuid4())
-                mysql.insert_html_record(pk_artcl=pk_article,
-                                         pk_org=page_info.pk_org,
-                                         pk_channel=page_info.pk_channel,
-                                         title=title,
-                                         src_url=str(tmp_chrome.current_url()),
-                                         path=full_path,
-                                         pub_time=public_date)
-                Logger.info("写入文章数据成功！")
-                get_ext(tmp_chrome, page_info, dir_name, pk_article)
+                if get_ext(tmp_chrome, page_info, dir_name, pk_article):
+                    mysql.insert_html_record(pk_artcl=pk_article,
+                                             pk_org=page_info.pk_org,
+                                             pk_channel=page_info.pk_channel,
+                                             title=title,
+                                             src_url=str(tmp_chrome.current_url()),
+                                             path=full_path,
+                                             pub_time=public_date)
+                    Logger.info("写入文章数据成功！")
             else:
                 mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "正文保存失败！")
         except Exception:
@@ -124,6 +124,8 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
                 Logger.info("写入文章附件mapping成功！")
             else:
                 mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "附件下载失败！")
+                return False
+        return True
 
 
 def __main__(page_info):
