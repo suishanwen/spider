@@ -111,9 +111,11 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
                     Logger.warning("%s 开始第%d次断点下载！" % (href, dl_count))
                     if py_download(href, download_full_path):
                         dl_count = 0
+                    else:
+                        Logger.warning("检测到文件状态有误，重新开始！")
                 except Exception:
                     dl_count += 1
-                    Logger.warning("%s 断点下载失败！" % href)
+                    Logger.warning("%s [异常]断点下载失败！" % href)
                     time.sleep(3)
             if dl_count == 0 and file.move_file(download_full_path, full_path):
                 mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
