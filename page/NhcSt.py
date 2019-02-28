@@ -28,7 +28,7 @@ class NhcSt(PageInfo):
         return _chrome.page_source().find('<h1>Not Found</h1>') != -1
 
     def get_content(self, _chrome):
-        if _chrome.page_source().find("年鉴") != -1:
+        if _chrome.page_source().find("年鉴") != -1 or _chrome.current_url().find("tjnj") != -1:
             url = _chrome.current_url()
             helper_url = url[0:url.rfind("/") + 1] + "helpcontents.html"
             _chrome.get(helper_url)
