@@ -65,7 +65,7 @@ def get_article(_chrome, page_info):
                                          pk_org=page_info.pk_org,
                                          pk_channel=page_info.pk_channel,
                                          title=title,
-                                         src_url=str(tmp_chrome.current_url()),
+                                         src_url=str(href),
                                          path=full_path,
                                          pub_time=public_date)
                 Logger.info("写入文章数据成功！")
