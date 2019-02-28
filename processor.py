@@ -87,6 +87,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
         ext_list = page_info.get_ext_list(tmp_chrome)
     except selenium.common.exceptions.NoSuchElementException:
         Logger.info("未找到附件!")
+    ext_fail = False
     for ext in ext_list:
         href = ext.get_attribute('href')
         if href and file.is_appendix_file(href):
@@ -101,7 +102,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
             url_prefix = url[0:url.rfind("/") + 1]
             file_name = "%s.%s" % (title, extension)
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
-            download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
+            # download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
             full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
             # try:
             #     ext.click()
@@ -113,7 +114,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
             while 1 <= dl_count <= 10:
                 try:
                     Logger.warning("%s 开始第%d次断点下载！" % (href, dl_count))
-                    if py_download(href, download_full_path):
+                    if py_download(href, full_path):
                         dl_count = 0
                     else:
                         Logger.warning("检测到文件状态有误，重新开始！")
@@ -121,7 +122,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
                     dl_count += 1
                     Logger.warning("%s [异常]断点下载失败！" % href)
                     time.sleep(3)
-            if dl_count == 0 and file.move_file(download_full_path, full_path):
+            if dl_count == 0:
                 mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
                                      pk_artcl=pk_article,
                                      file_type_name=extension,
@@ -130,7 +131,9 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
                 Logger.info("写入文章附件mapping成功！")
             else:
                 Logger.warn("%s 附件下载失败!" % href)
-                mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "附件下载失败！")
+                if not ext_fail:
+                    mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, url, "附件下载失败！")
+                    ext_fail = True
 
 
 def __main__(page_info):
