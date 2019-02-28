@@ -1,4 +1,5 @@
 import pymysql
+import time
 from util.yaml import yaml_read
 from conf.config import Const
 from util.logger import Logger
@@ -16,7 +17,7 @@ def get_connect():
 
 
 # 执行sql
-def execute_sql(sql):
+def execute_sql(sql, count=1):
     if sql:
         try:
             conn = get_connect()
@@ -24,8 +25,14 @@ def execute_sql(sql):
             cur.execute(sql)
             cur.close()
             conn.close()
+            return True
         except pymysql.DatabaseError:
-            print("insert error")
+            count += 1
+            Logger.info("第%d次执行sql失败！")
+            if count <= 3:
+                time.sleep(1)
+                return execute_sql(sql, count)
+            return False
 
 
 # 插入html主记录
@@ -34,7 +41,7 @@ def insert_html_record(pk_artcl, pk_org, pk_channel, title, src_url, path, pub_t
         sql = [
             "insert into tb_artcl (pk_artcl, pk_org,pk_channel, title, src_url, contfile_fullpath, pub_time) values ('%s', '%s' ,'%s','%s','%s','%s','%s')"
             % (pk_artcl, pk_org, pk_channel, title, src_url, path, pub_time)]
-        execute_sql(sql[0])
+        return execute_sql(sql[0])
 
 
 # 插入html附件记录
@@ -43,7 +50,7 @@ def insert_mapping(pk_artcl_file, pk_artcl, file_type_name, file_name, file_path
         sql = [
             "insert into mapping_artcl_file (pk_artcl_file, pk_artcl, file_type_name, file_name, file_path) values ('%s', '%s' ,'%s','%s','%s')"
             % (pk_artcl_file, pk_artcl, file_type_name, file_name, file_path)]
-        execute_sql(sql[0])
+        return execute_sql(sql[0])
 
 
 # 插入爬取失败记录
@@ -56,7 +63,7 @@ def set_toretry_task(pk_task, pk_webchannel, src_url, errmsg):
         sql = [
             "update tb_toretry_task set errmsg='%s',total_times=total_times+1 where pk_webchannel = '%s' and src_url ='%s'"
             % (errmsg, pk_webchannel, src_url)]
-    execute_sql(sql[0])
+    return execute_sql(sql[0])
 
 
 # 插入爬取失败记录
@@ -64,7 +71,7 @@ def stop_toretry_task(pk_webchannel, src_url):
     sql = [
         "update tb_toretry_task set is_stop=1 where pk_webchannel = '%s' and src_url ='%s'"
         % (pk_webchannel, src_url)]
-    execute_sql(sql[0])
+    return execute_sql(sql[0])
 
 
 # 检查html主记录 存在
