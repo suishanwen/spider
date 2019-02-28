@@ -59,6 +59,7 @@ class Chrome():
                 Logger.warn("未找到class[%s]" % class_name)
         self.refresh()
         time.sleep(10)
+        Logger.error("第%d次未找到classes[%s]" % (count, class_names))
         count += 1
         return self.multi_find_class(class_names, count)
 

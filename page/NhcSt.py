@@ -28,7 +28,7 @@ class NhcSt(PageInfo):
     def get_content(self, _chrome):
         if _chrome.page_source().find("年鉴") != -1:
             return _chrome.multi_find_class(["mb50", "WordSection1"]).get_attribute('innerHTML')
-        return _chrome.multi_find_class(["mb50", "content"]).get_attribute('innerHTML')
+        return _chrome.multi_find_class(["mb50", "content","w1100"]).get_attribute('innerHTML')
 
     def get_ext_list(self, _chrome):
         if _chrome.page_source().find("年鉴") != -1:
