@@ -26,8 +26,8 @@ def execute_sql(sql, count=1):
             cur.close()
             conn.close()
             return True
-        except pymysql.DatabaseError:
-            Logger.info("第%d次执行sql失败！" % count)
+        except pymysql.DatabaseError as e:
+            Logger.info("第%d次执行sql失败！%s" % (count, str(e)))
             if count <= 3:
                 count += 1
                 time.sleep(1)
@@ -57,7 +57,7 @@ def insert_mapping(pk_artcl_file, pk_artcl, file_type_name, file_name, file_path
 def set_toretry_task(pk_task, pk_webchannel, src_url, errmsg):
     if not check_toretry_task_exist(pk_webchannel, src_url):
         sql = [
-            "insert into tb_toretry_task (pk_task, pk_webchannel, src_url,errmsg,total_times) values ('%s', '%s' ,'%s','%s','%s')"
+            "insert into tb_toretry_task (pk_task, pk_webchannel, src_url,errmsg,total_times) values ('%s', '%s' ,'%s','%s',%d)"
             % (pk_task, pk_webchannel, src_url, errmsg, 0)]
     else:
         sql = [

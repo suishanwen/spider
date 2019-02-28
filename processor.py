@@ -74,7 +74,7 @@ def get_article(_chrome, page_info):
         except Exception as e:
             Logger.info("文章获取异常！%s" % tmp_chrome.current_url())
             mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(),
-                                   "文章获取异常！%s" % str(e))
+                                   "文章获取异常！{0}".format(str(e)).replace("'",'"'))
     Logger.info("当前页 %s 抓取完成 " % (_chrome.current_url()))
     tmp_chrome.quit()
 
@@ -128,7 +128,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
             else:
                 mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "附件下载失败！")
                 return False
-        return True
+    return True
 
 
 def __main__(page_info):
