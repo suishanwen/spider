@@ -143,5 +143,8 @@ def __main__(page_info):
         page_info.index = index
         page_info.name = page[0]
         page_info.url = page_info.domain + page[1]
-        page_info.page_exec = page[2]
+        try:
+            page_info.page_exec = page[2]
+        except IndexError:
+            page_info.page_exec = 0
         get_page(page_info)

@@ -28,7 +28,7 @@ def execute_sql(sql, count=1):
             return True
         except pymysql.DatabaseError:
             count += 1
-            Logger.info("第%d次执行sql失败！")
+            Logger.info("第%d次执行sql失败！" % count)
             if count <= 3:
                 time.sleep(1)
                 return execute_sql(sql, count)
