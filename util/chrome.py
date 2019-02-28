@@ -33,9 +33,9 @@ class Chrome():
         self.chrome.delete_all_cookies()
 
     def find_class(self, class_name, count=1):
-        result = ''
         try:
             result = self.chrome.find_element_by_class_name(class_name)
+            return result
         except selenium.common.exceptions.NoSuchElementException as e:
             Logger.warn("未找到class[%s]，刷新页面%d次" % (class_name, count))
             count += 1
@@ -46,7 +46,6 @@ class Chrome():
             else:
                 Logger.error("连续刷新页面%d次未找到class[%s]" % (count, class_name))
                 raise e
-        return result
 
     def multi_find_class(self, class_names, count=1):
         if count > 30:
