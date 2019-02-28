@@ -6,7 +6,6 @@ from util import mysql, chrome, file
 from util.logger import Logger
 import selenium.common.exceptions
 from util.download import py_download
-import traceback
 
 
 # 获取所有分页页面
@@ -52,6 +51,8 @@ def get_article(_chrome, page_info):
         # 检查是否正常打开页面
         if page_info.check_content_not_exist(tmp_chrome):
             Logger.info("文章不存在，跳过！")
+            mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(),
+                                   "文章不存在，跳过！")
             continue
         # 获取正文
         try:
@@ -74,7 +75,7 @@ def get_article(_chrome, page_info):
         except Exception as e:
             Logger.info("文章获取异常！%s" % tmp_chrome.current_url())
             mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(),
-                                   "文章获取异常！{0}".format(str(e)).replace("'",'"'))
+                                   "文章获取异常！{0}".format(str(e)).replace("'", '"'))
     Logger.info("当前页 %s 抓取完成 " % (_chrome.current_url()))
     tmp_chrome.quit()
 
@@ -96,10 +97,12 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
                 title = origin_file_name
             if title.find('.%s' % extension) != -1:
                 title = title.replace('.%s' % extension, "")
+            url = tmp_chrome.current_url()
+            url_prefix = url[0:url.rfind("/") + 1]
             file_name = "%s.%s" % (title, extension)
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
             download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
-            full_path = "%s/%s" % (path, file_name)
+            full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
             # try:
             #     ext.click()
             #     time.sleep(1)
@@ -126,6 +129,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
                                      file_path=full_path)
                 Logger.info("写入文章附件mapping成功！")
             else:
+                Logger.warn("%s 附件下载失败!" % href)
                 mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "附件下载失败！")
 
 

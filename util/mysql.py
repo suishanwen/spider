@@ -61,8 +61,8 @@ def set_toretry_task(pk_task, pk_webchannel, src_url, errmsg):
             % (pk_task, pk_webchannel, src_url, errmsg, 0)]
     else:
         sql = [
-            "update tb_toretry_task set errmsg='%s',total_times=total_times+1 where pk_webchannel = '%s' and src_url ='%s'"
-            % (errmsg, pk_webchannel, src_url)]
+            "update tb_toretry_task set errmsg='%s',total_times=total_times+1,errmsg='%s' where pk_webchannel = '%s' and src_url ='%s'"
+            % (errmsg, pk_webchannel, src_url, errmsg)]
     execute_sql(sql[0])
 
 

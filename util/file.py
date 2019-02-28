@@ -49,7 +49,7 @@ def write_to_file(full_path, text):
     if text:
         content = text
         # 如果是html，则给text拼接一个卡头和结尾
-        if str.endswith(full_path, "html", 0, len(full_path)):
+        if str.endswith(full_path, "html", 0, len(full_path)) and text.find("<body") == -1:
             content = html_header + text + html_footer
         mkdir(path)
         with open(full_path, mode="w", encoding="utf-8") as file:

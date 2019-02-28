@@ -1,4 +1,6 @@
 from page.PageInfo import PageInfo
+from util.file import is_appendix_file
+import time
 
 
 class NhcSt(PageInfo):
@@ -27,10 +29,28 @@ class NhcSt(PageInfo):
 
     def get_content(self, _chrome):
         if _chrome.page_source().find("年鉴") != -1:
-            return _chrome.multi_find_class(["mb50", "WordSection1"]).get_attribute('innerHTML')
+            url = _chrome.current_url()
+            helper_url = url[0:url.rfind("/") + 1] + "helpcontents.html"
+            _chrome.get(helper_url)
+            if not self.check_content_not_exist(_chrome):
+                return _chrome.page_source()
+            else:
+                _chrome.get(url)
+                time.sleep(1)
         return _chrome.multi_find_class(["mb50", "content", "w1100"]).get_attribute('innerHTML')
 
     def get_ext_list(self, _chrome):
-        if _chrome.page_source().find("年鉴") != -1:
-            return _chrome.chrome.find_elements_by_class_name("t0i").find_elements_by_tag_name("a")
+        if _chrome.page_source().find("年鉴") != -1 and _chrome.page_source().find("new MakeTree") != -1:
+            tables = _chrome.chrome.find_elements_by_tag_name("table")
+            a_result = []
+            for table in tables:
+                a_list = table.find_elements_by_tag_name("a")
+                for a in a_list:
+                    href = a.get_attribute('href')
+                    # 过滤去重
+                    if is_appendix_file(href) and len(
+                            list(filter(lambda x: True if x.get_attribute('href') == href else False,
+                                        a_result))) == 0:
+                        a_result.append(a)
+            return a_result
         return _chrome.chrome.find_element_by_class_name("con").find_elements_by_tag_name("a")

@@ -63,19 +63,23 @@ class Chrome():
         count += 1
         return self.multi_find_class(class_names, count)
 
-    def get(self, url):
+    def get(self, url, count=1):
         Logger.info("请求url:%s" % url)
-        self.chrome.get(url)
+        if count == 1:
+            self.chrome.get(url)
+        else:
+            self.refresh()
         if self.page_source().find('503 Service Unavailable') != -1:
             Logger.warn("503 Service Unavailable, %s" % url)
+            time.sleep(10)
+            self.get(url, count + 1)
 
     def refresh(self):
         self.clear_cookies()
+        Logger.info("刷新")
         time.sleep(0.5)
         self.chrome.refresh()
         time.sleep(0.5)
-        if self.page_source().find('503 Service Unavailable') != -1:
-            Logger.warn("503 Service Unavailable")
 
     def quit(self):
         self.chrome.quit()
