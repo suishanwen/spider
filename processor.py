@@ -74,7 +74,7 @@ def get_article(_chrome, page_info):
         except Exception as e:
             Logger.info("文章获取异常！%s" % tmp_chrome.current_url())
             mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(),
-                                   "文章获取异常！%s" % e)
+                                   "文章获取异常！%s" % str(e))
     Logger.info("当前页 %s 抓取完成 " % (_chrome.current_url()))
     tmp_chrome.quit()
 
