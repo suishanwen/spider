@@ -71,10 +71,10 @@ def get_article(_chrome, page_info):
                     Logger.info("写入文章数据成功！")
             else:
                 mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "正文保存失败！")
-        except Exception:
+        except Exception as e:
             Logger.info("文章获取异常！%s" % tmp_chrome.current_url())
             mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(),
-                                   "文章获取异常！%s" % traceback.format_exc())
+                                   "文章获取异常！%s" % e)
     Logger.info("当前页 %s 抓取完成 " % (_chrome.current_url()))
     tmp_chrome.quit()
 
