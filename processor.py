@@ -15,7 +15,7 @@ def get_page(page_info):
     time.sleep(1)
     page_count = page_info.get_page_count(_chrome)
     if page_info.page_exec == 0:
-        get_article(_chrome, page_info)
+        get_page_articles(_chrome, page_info)
         page_info.pages[page_info.index][2] = 1
         yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
     _chrome.quit()
@@ -25,59 +25,64 @@ def get_page(page_info):
         _chrome = chrome.Chrome()
         _chrome.get(page_info.get_sub_page_url(page_index))
         time.sleep(1)
-        get_article(_chrome, page_info)
+        get_page_articles(_chrome, page_info)
         _chrome.quit()
         page_info.pages[page_info.index][2] = page_index
         yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
 
 
 # 获取分页下文章
-def get_article(_chrome, page_info):
+def get_page_articles(_chrome, page_info):
     content_list = page_info.get_content_list(_chrome)
     tmp_chrome = chrome.Chrome()
     for i in range(len(content_list)):
         # 获取时间_标题、原始链接、发布时间
         title, href, public_date = page_info.get_content_info(_chrome, content_list[i])
-        # 检查是否已爬取
-        if mysql.check_exist(title, href):
-            Logger.info("%s(%s)已抓取,跳过" % (title, href))
-            continue
-        dir_name = file.validate_title(
-            title)
-        Logger.info("requsts to : %s " % dir_name)
-        # 打开原始链接
-        tmp_chrome.get(href)
-        time.sleep(1)
         # 检查是否正常打开页面
         if page_info.check_content_not_exist(tmp_chrome):
             Logger.info("文章不存在，跳过！")
             mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(),
                                    "文章不存在，跳过！")
             continue
-        # 获取正文
-        try:
-            content = page_info.get_content(tmp_chrome)
-            full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
-            if file.write_to_file(full_path, content):
-                Logger.info("摘取正文，保存页面成功！")
-                pk_article = str(uuid.uuid4())
-                mysql.insert_html_record(pk_artcl=pk_article,
-                                         pk_org=page_info.pk_org,
-                                         pk_channel=page_info.pk_channel,
-                                         title=title,
-                                         src_url=str(href),
-                                         path=full_path,
-                                         pub_time=public_date)
-                Logger.info("写入文章数据成功！")
-                get_ext(tmp_chrome, page_info, dir_name, pk_article)
-            else:
-                mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "正文保存失败！")
-        except Exception as e:
-            Logger.info("文章获取异常！%s" % tmp_chrome.current_url())
-            mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(),
-                                   "文章获取异常！{0}".format(str(e)).replace("'", '"'))
+        # 检查是否已爬取
+        if mysql.check_exist(title, href):
+            Logger.info("%s(%s)已抓取,跳过" % (title, href))
+            continue
+        get_article(tmp_chrome, title, href, public_date, page_info)
     Logger.info("当前页 %s 抓取完成 " % (_chrome.current_url()))
     tmp_chrome.quit()
+
+
+# 获取文章
+def get_article(tmp_chrome, title, href, public_date, page_info):
+    dir_name = file.validate_title(
+        title)
+    Logger.info("requsts to : %s " % dir_name)
+    # 打开原始链接
+    tmp_chrome.get(href)
+    time.sleep(1)
+    # 获取正文
+    try:
+        content = page_info.get_content(tmp_chrome)
+        full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
+        if file.write_to_file(full_path, content):
+            Logger.info("摘取正文，保存页面成功！")
+            pk_article = str(uuid.uuid4())
+            mysql.insert_html_record(pk_artcl=pk_article,
+                                     pk_org=page_info.pk_org,
+                                     pk_channel=page_info.pk_channel,
+                                     title=title,
+                                     src_url=str(href),
+                                     path=full_path,
+                                     pub_time=public_date)
+            Logger.info("写入文章数据成功！")
+            get_ext(tmp_chrome, page_info, dir_name, pk_article)
+        else:
+            mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "正文保存失败！")
+    except Exception as e:
+        Logger.info("文章获取异常！%s" % tmp_chrome.current_url())
+        mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(),
+                               "文章获取异常！{0}".format(str(e)).replace("'", '"'))
 
 
 # 获取文章附件
