@@ -19,15 +19,15 @@ def get_page(page_info, page_index, page_name, page_url, page_exec):
         page_info.pages[page_index][2] = 1
         yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
     _chrome.quit()
-    for page_index in range(2, page_count + 1):
-        if page_index <= page_exec:
+    for sub_page_index in range(2, page_count + 1):
+        if sub_page_index <= page_exec:
             continue
         _chrome = chrome.Chrome()
-        _chrome.get(page_info.get_sub_page_url(page_index, page_url))
+        _chrome.get(page_info.get_sub_page_url(sub_page_index, page_url))
         time.sleep(1)
         get_page_articles(_chrome, page_info, page_name)
         _chrome.quit()
-        page_info.pages[page_index][2] = page_index
+        page_info.pages[page_index][2] = sub_page_index
         yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
 
 
