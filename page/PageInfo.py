@@ -6,10 +6,6 @@ class PageInfo(object):
     domain = ""
     web_site_url = ""
     pages = ""
-    index = 0
-    name = ""
-    url = ""
-    page_exec = 0
 
     def get_page_count(self, _chrome):
         pass

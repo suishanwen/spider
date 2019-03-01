@@ -9,30 +9,30 @@ from util.download import py_download
 
 
 # 获取所有分页页面
-def get_page(page_info):
+def get_page(page_info, page_index, page_name, page_url, page_exec):
     _chrome = chrome.Chrome()
-    _chrome.get(page_info.url)
+    _chrome.get(page_url)
     time.sleep(1)
     page_count = page_info.get_page_count(_chrome)
-    if page_info.page_exec == 0:
-        get_page_articles(_chrome, page_info)
-        page_info.pages[page_info.index][2] = 1
+    if page_exec == 0:
+        get_page_articles(_chrome, page_info, page_name)
+        page_info.pages[page_index][2] = 1
         yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
     _chrome.quit()
     for page_index in range(2, page_count + 1):
-        if page_index <= page_info.page_exec:
+        if page_index <= page_exec:
             continue
         _chrome = chrome.Chrome()
         _chrome.get(page_info.get_sub_page_url(page_index))
         time.sleep(1)
-        get_page_articles(_chrome, page_info)
+        get_page_articles(_chrome, page_info, page_name)
         _chrome.quit()
-        page_info.pages[page_info.index][2] = page_index
+        page_info.pages[page_index][2] = page_index
         yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
 
 
 # 获取分页下文章
-def get_page_articles(_chrome, page_info):
+def get_page_articles(_chrome, page_info, page_name):
     content_list = page_info.get_content_list(_chrome)
     tmp_chrome = chrome.Chrome()
     for i in range(len(content_list)):
@@ -48,13 +48,13 @@ def get_page_articles(_chrome, page_info):
         if mysql.check_exist(title, href):
             Logger.info("%s(%s)已抓取,跳过" % (title, href))
             continue
-        get_article(tmp_chrome, title, href, public_date, page_info)
+        get_article(tmp_chrome, title, href, public_date, page_info, page_name)
     Logger.info("当前页 %s 抓取完成 " % (_chrome.current_url()))
     tmp_chrome.quit()
 
 
 # 获取文章
-def get_article(tmp_chrome, title, href, public_date, page_info):
+def get_article(tmp_chrome, title, href, public_date, page_info, page_name):
     dir_name = file.validate_title(
         title)
     Logger.info("requsts to : %s " % dir_name)
@@ -64,7 +64,7 @@ def get_article(tmp_chrome, title, href, public_date, page_info):
     # 获取正文
     try:
         content = page_info.get_content(tmp_chrome)
-        full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
+        full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
         if file.write_to_file(full_path, content):
             Logger.info("摘取正文，保存页面成功！")
             pk_article = str(uuid.uuid4())
@@ -76,7 +76,7 @@ def get_article(tmp_chrome, title, href, public_date, page_info):
                                      path=full_path,
                                      pub_time=public_date)
             Logger.info("写入文章数据成功！")
-            get_ext(tmp_chrome, page_info, dir_name, pk_article)
+            get_ext(tmp_chrome, page_info, dir_name, pk_article, page_name)
         else:
             mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "正文保存失败！")
     except Exception as e:
@@ -86,7 +86,7 @@ def get_article(tmp_chrome, title, href, public_date, page_info):
 
 
 # 获取文章附件
-def get_ext(tmp_chrome, page_info, dir_name, pk_article):
+def get_ext(tmp_chrome, page_info, dir_name, pk_article, page_name):
     ext_list = []
     try:
         ext_list = page_info.get_ext_list(tmp_chrome)
@@ -106,7 +106,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article):
             url = tmp_chrome.current_url()
             url_prefix = url[0:url.rfind("/") + 1]
             file_name = "%s.%s" % (title, extension)
-            path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_info.name, dir_name)
+            path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
             # download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
             full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
             # try:
@@ -148,13 +148,12 @@ def __main__(page_info):
     page_info.pages = yaml_read(Const.GOV_YAML, ("gov", page_info.section, "pages"))
     page_info.pk_org = mysql.get_pk_org(page_info.org_name)
     page_info.pk_channel = mysql.get_pk_channel(page_info.pk_org, page_info.web_site_url)
-    for index in range(len(page_info.pages)):
-        page = page_info.pages[index]
-        page_info.index = index
-        page_info.name = page[0]
-        page_info.url = page_info.domain + page[1]
+    for page_index in range(len(page_info.pages)):
+        page = page_info.pages[page_index]
+        page_name = page[0]
+        page_url = page_info.domain + page[1]
         try:
-            page_info.page_exec = page[2]
+            page_exec = page[2]
         except IndexError:
-            page_info.page_exec = 0
-        get_page(page_info)
+            page_exec = 0
+        get_page(page_info, page_index, page_name, page_url, page_exec)
