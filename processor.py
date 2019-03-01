@@ -37,30 +37,30 @@ def get_page_articles(_chrome, page_info, page_name):
     tmp_chrome = chrome.Chrome()
     for i in range(len(content_list)):
         # 获取时间_标题、原始链接、发布时间
-        title, href, public_date = page_info.get_content_info(_chrome, content_list[i])
-        # 检查是否正常打开页面
-        if page_info.check_content_not_exist(tmp_chrome):
-            Logger.info("文章不存在，跳过！")
-            mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(),
-                                   "文章不存在，跳过！")
-            continue
+        title, href, pub_time = page_info.get_content_info(_chrome, content_list[i])
         # 检查是否已爬取
         if mysql.check_exist(title, href):
             Logger.info("%s(%s)已抓取,跳过" % (title, href))
             continue
-        get_article(tmp_chrome, title, href, public_date, page_info, page_name)
+        get_article(tmp_chrome, title, href, pub_time, page_info, page_name)
     Logger.info("当前页 %s 抓取完成 " % (_chrome.current_url()))
     tmp_chrome.quit()
 
 
 # 获取文章
-def get_article(tmp_chrome, title, href, public_date, page_info, page_name):
+def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
     dir_name = file.validate_title(
         title)
     Logger.info("requsts to : %s " % dir_name)
     # 打开原始链接
     tmp_chrome.get(href)
     time.sleep(1)
+    # 检查是否正常打开页面
+    if page_info.check_content_not_exist(tmp_chrome):
+        Logger.info("文章不存在，跳过！")
+        mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title, pub_time, page_name,
+                               "文章不存在，跳过！")
+        return
     # 获取正文
     try:
         content = page_info.get_content(tmp_chrome)
@@ -74,19 +74,20 @@ def get_article(tmp_chrome, title, href, public_date, page_info, page_name):
                                      title=title,
                                      src_url=str(href),
                                      path=full_path,
-                                     pub_time=public_date)
+                                     pub_time=pub_time)
             Logger.info("写入文章数据成功！")
-            get_ext(tmp_chrome, page_info, dir_name, pk_article, page_name)
+            get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name)
         else:
-            mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(), "正文保存失败！")
+            mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title,
+                                   pub_time, page_name, "正文保存失败！")
     except Exception as e:
         Logger.info("文章获取异常！%s" % tmp_chrome.current_url())
-        mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, tmp_chrome.current_url(),
+        mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title, pub_time, page_name,
                                "文章获取异常！{0}".format(str(e)).replace("'", '"'))
 
 
 # 获取文章附件
-def get_ext(tmp_chrome, page_info, dir_name, pk_article, page_name):
+def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
     ext_list = []
     try:
         ext_list = page_info.get_ext_list(tmp_chrome)
@@ -123,9 +124,9 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, page_name):
                         dl_count = 0
                     else:
                         Logger.warning("检测到文件状态有误，重新开始！")
-                except Exception:
+                except Exception as e:
                     dl_count += 1
-                    Logger.warning("%s [异常]断点下载失败！" % href)
+                    Logger.warning("%s [异常]断点下载失败 %s！" % (href, str(e)))
                     time.sleep(3)
             if dl_count == 0:
                 mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
@@ -137,14 +138,27 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, page_name):
             else:
                 Logger.warn("%s 附件下载失败!" % href)
                 if not ext_fail:
-                    mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, url, "附件下载失败！")
+                    mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, url, title, pub_time, page_name,
+                                           "附件下载失败！")
                     ext_fail = True
 
 
-def __main__(page_info):
-    page_info.from_dict(yaml_read(Const.GOV_YAML, ("gov", page_info.section)))
-    page_info.pk_org = mysql.get_pk_org(page_info.org_name)
-    page_info.pk_channel = mysql.get_pk_channel(page_info.pk_org, page_info.channel)
+# 异常抓取重试任务
+def retry_failed(page_info):
+    Logger.info("开始重试任务...")
+    retry_list = mysql.query_toretry_task(page_info.pk_channel)
+    _chrome = chrome.Chrome()
+    for retry_info in retry_list:
+        get_article(_chrome, retry_info["title"], retry_info["src_url"], retry_info["pub_time"], page_info,
+                    retry_info["sub_channel_name"])
+        mysql.delete_toretry_task(page_info.pk_channel, retry_info["src_url"], retry_info["total_times"])
+    _chrome.quit()
+    Logger.info("重试任务完成")
+
+
+# 顺序抓取
+def normal_start(page_info):
+    Logger.info("开始顺序抓取...")
     for page_index in range(len(page_info.pages)):
         page = page_info.pages[page_index]
         page_name = page[0]
@@ -154,4 +168,15 @@ def __main__(page_info):
         except IndexError:
             page_exec = 0
         get_page(page_info, page_index, page_name, page_url, page_exec)
+    Logger.info("顺序抓取完成")
+
+
+def __main__(page_info):
+    Logger.info("程序启动")
+    page_info.from_dict(yaml_read(Const.GOV_YAML, ("gov", page_info.section)))
+    page_info.pk_org = mysql.get_pk_org(page_info.org_name)
+    page_info.pk_channel = mysql.get_pk_channel(page_info.pk_org, page_info.channel)
+    Logger.info("查询机构信息成功，开始抓取数据...")
+    retry_failed(page_info)
+    normal_start(page_info)
     Logger.info("本次程序执行完成,退出!")

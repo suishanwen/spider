@@ -54,19 +54,49 @@ def insert_mapping(pk_artcl_file, pk_artcl, file_type_name, file_name, file_path
 
 
 # 插入爬取失败记录
-def set_toretry_task(pk_task, pk_webchannel, src_url, errmsg):
+def set_toretry_task(pk_task, pk_webchannel, src_url, title, pub_time, sub_channel_name, errmsg):
     if not check_toretry_task_exist(pk_webchannel, src_url):
+        Logger.warn("插入重试任务 %s！" % title)
         sql = [
-            "insert into tb_toretry_task (pk_task, pk_webchannel, src_url,errmsg,total_times) values ('%s', '%s' ,'%s','%s',%d)"
-            % (pk_task, pk_webchannel, src_url, errmsg, 0)]
+            "insert into tb_toretry_task (pk_task, pk_webchannel, src_url, title, pub_time, sub_channel_name,errmsg,"
+            "total_times) values ('%s', '%s' ,'%s','%s', '%s' ,'%s','%s',%d)"
+            % (pk_task, pk_webchannel, src_url, title, pub_time, sub_channel_name, errmsg, 0)]
     else:
+        Logger.warn("更新重试任务 %s 尝试次数！" % title)
         sql = [
             "update tb_toretry_task set errmsg='%s',total_times=total_times+1 where pk_webchannel = '%s' and src_url ='%s'"
             % (errmsg, pk_webchannel, src_url)]
     execute_sql(sql[0])
 
 
-# 插入爬取失败记录
+def query_toretry_task(pk_webchannel):
+    sql = [
+        "select  src_url ,title ,pub_time ,sub_channel_name,total_times from tb_toretry_task where pk_webchannel = '%s' and is_stop=0 " % (
+            pk_webchannel)]
+    conn = get_connect()
+    cur = conn.cursor()
+    cur.execute(sql[0])
+    result = cur.fetchall()
+    cur.close()
+    conn.close()
+    if len(result) == 0:
+        Logger.error("当前channel未找到可重试的失败记录！")
+    else:
+        Logger.info("当前channel共找到%d条可重试的失败记录！" % len(result))
+    return list(
+        map(lambda data: {"src_url": data[0], "title": data[1], "pub_time": str(data[2]), "sub_channel_name": data[3],
+                          "total_times": data[4]}, result))
+
+
+# 删除爬取失败记录
+def delete_toretry_task(pk_webchannel, src_url, total_times):
+    sql = [
+        "delete from tb_toretry_task where is_stop=0 and pk_webchannel = '%s' and src_url ='%s' and total_times = %d"
+        % (pk_webchannel, src_url, total_times)]
+    return execute_sql(sql[0])
+
+
+# 停止爬取失败记录
 def stop_toretry_task(pk_webchannel, src_url):
     sql = [
         "update tb_toretry_task set is_stop=1 where pk_webchannel = '%s' and src_url ='%s'"
