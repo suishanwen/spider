@@ -43,7 +43,7 @@ class NhcSt(PageInfo):
         return _chrome.multi_find_class(["mb50", "content", "w1100"]).get_attribute('innerHTML')
 
     def get_ext_list(self, _chrome):
-        if _chrome.page_source().find("年鉴") != -1 and _chrome.page_source().find("new MakeTree") != -1:
+        if _chrome.current_url().find("helpcontents.html") != -1:
             tables = _chrome.chrome.find_elements_by_tag_name("table")
             a_result = []
             for table in tables:
