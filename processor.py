@@ -108,14 +108,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
             url_prefix = url[0:url.rfind("/") + 1]
             file_name = "%s.%s" % (title, extension)
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
-            # download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
             full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
-            # try:
-            #     ext.click()
-            #     time.sleep(1)
-            # except Exception:
-            #     Logger.warning("%s chrome下载失败！" % href)
-            # if not file.downloads_done(file_name):
             dl_count = 1
             while 1 <= dl_count <= 10:
                 try:
@@ -128,6 +121,15 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
                     dl_count += 1
                     Logger.warning("%s [异常]断点下载失败 %s！" % (href, str(e)))
                     time.sleep(3)
+            if dl_count > 10:
+                download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
+                try:
+                    ext.click()
+                    time.sleep(1)
+                except Exception as e:
+                    Logger.warning("%s chrome下载失败 %s！" % (href, str(e)))
+                if file.downloads_done(file_name) and file.move_file(download_full_path, full_path):
+                    dl_count = 0
             if dl_count == 0:
                 mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
                                      pk_artcl=pk_article,
