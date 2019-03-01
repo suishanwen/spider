@@ -2,13 +2,16 @@ from page.PageInfo import PageInfo
 
 
 class Beijing(PageInfo):
-    section = "beijing"
+
+    def __init__(self):
+        PageInfo.__init__(self)
+        self.section = "beijing"
 
     def get_page_count(self, _chrome):
         return int(_chrome.find_class("laypage_last").get_attribute('data-page'))
 
-    def get_sub_page_url(self, page_index):
-        return "%s#!page=%d" % (self.url, page_index)
+    def get_sub_page_url(self, page_index, page_url):
+        return "%s#!page=%d" % (page_url, page_index)
 
     def get_content_list(self, _chrome):
         return _chrome.find_class("zxgklist").find_elements_by_tag_name("li")

@@ -23,7 +23,7 @@ def get_page(page_info, page_index, page_name, page_url, page_exec):
         if page_index <= page_exec:
             continue
         _chrome = chrome.Chrome()
-        _chrome.get(page_info.get_sub_page_url(page_index))
+        _chrome.get(page_info.get_sub_page_url(page_index, page_url))
         time.sleep(1)
         get_page_articles(_chrome, page_info, page_name)
         _chrome.quit()
@@ -142,12 +142,9 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, page_name):
 
 
 def __main__(page_info):
-    page_info.org_name = yaml_read(Const.GOV_YAML, ("gov", page_info.section, "org"))
-    page_info.domain = yaml_read(Const.GOV_YAML, ("gov", page_info.section, "url"))
-    page_info.web_site_url = yaml_read(Const.GOV_YAML, ("gov", page_info.section, "web_site_url"))
-    page_info.pages = yaml_read(Const.GOV_YAML, ("gov", page_info.section, "pages"))
+    page_info.from_dict(yaml_read(Const.GOV_YAML, ("gov", page_info.section)))
     page_info.pk_org = mysql.get_pk_org(page_info.org_name)
-    page_info.pk_channel = mysql.get_pk_channel(page_info.pk_org, page_info.web_site_url)
+    page_info.pk_channel = mysql.get_pk_channel(page_info.pk_org, page_info.channel)
     for page_index in range(len(page_info.pages)):
         page = page_info.pages[page_index]
         page_name = page[0]
@@ -157,3 +154,4 @@ def __main__(page_info):
         except IndexError:
             page_exec = 0
         get_page(page_info, page_index, page_name, page_url, page_exec)
+    Logger.info("本次程序执行完成,退出!")

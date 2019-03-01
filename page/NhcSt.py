@@ -4,15 +4,18 @@ import time
 
 
 class NhcSt(PageInfo):
-    section = "nhcSt"
+
+    def __init__(self):
+        PageInfo.__init__(self)
+        self.section = "nhcSt"
 
     def get_page_count(self, _chrome):
         text = _chrome.find_class("pagination_index_last").text
         page_count = int(text[text.find("共") + 2:text.find("页") - 1])
         return page_count
 
-    def get_sub_page_url(self, page_index):
-        return self.url.replace("ejlist.shtml", "ejlist_%d.shtml" % page_index)
+    def get_sub_page_url(self, page_index, page_url):
+        return page_url.replace("ejlist.shtml", "ejlist_%d.shtml" % page_index)
 
     def get_content_list(self, _chrome):
         return _chrome.find_class("zwgklist").find_elements_by_tag_name("li")
