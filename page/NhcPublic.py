@@ -25,7 +25,8 @@ class NhcPublic(PageInfo):
         title = str(public_date + "_" + a.text)
         href = a.get_attribute("href")
         manuscript_id = href[href.find("'") + 1:href.rfind("'")]
-        static_url = _chrome.chrome.find_element_by_id("staticUrl_" + manuscript_id).get_attribute('value')
+        static_url = "http://www.nhc.gov.cn" + \
+                     _chrome.chrome.find_element_by_id("staticUrl_" + manuscript_id).get_attribute('value')
         return title, static_url, public_date
 
     def check_content_not_exist(self, _chrome):
