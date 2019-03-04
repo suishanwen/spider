@@ -108,7 +108,11 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
             url_prefix = url[0:url.rfind("/") + 1]
             file_name = "%s.%s" % (title, extension)
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
-            full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
+            # 同目录下附件
+            if href.find(url_prefix) != -1:
+                full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
+            else:
+                full_path = "%s/%s" % (path, origin_file_name)
             dl_count = 1
             while 1 <= dl_count <= 10:
                 try:
