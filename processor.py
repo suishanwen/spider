@@ -179,7 +179,7 @@ def normal_start(page_info):
                 page_exec = page[2]
             except IndexError:
                 page_exec = 0
-            task = executor.submit(get_page, page_index, page_name, page_url, page_exec)
+            task = executor.submit(get_page, page_info, page_index, page_name, page_url, page_exec)
             task_list.append(task)
         for task in as_completed(task_list):
             Logger.info("线程[%s]执行完成" % str(task))
