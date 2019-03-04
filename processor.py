@@ -109,7 +109,11 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
             file_name = "%s.%s" % (title, extension)
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
             # download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
-            full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
+            # 同目录下附件
+            if href.find(url_prefix) != -1:
+                full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
+            else:
+                full_path = "%s/%s" % (path, origin_file_name)
             # try:
             #     ext.click()
             #     time.sleep(1)
