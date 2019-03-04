@@ -157,7 +157,10 @@ def retry_failed(page_info):
     for retry_info in retry_list:
         get_article(_chrome, retry_info["title"], retry_info["src_url"], retry_info["pub_time"], page_info,
                     retry_info["sub_channel_name"])
+        # 如果任务未失败（retry_info未增加）,删除任务
         mysql.delete_toretry_task(page_info.pk_channel, retry_info["src_url"], retry_info["total_times"])
+    # 停止重试超过5次的任务
+    mysql.stop_toretry_task(page_info.pk_channel)
     _chrome.quit()
     Logger.info("重试任务完成")
 

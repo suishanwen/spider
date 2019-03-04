@@ -97,10 +97,10 @@ def delete_toretry_task(pk_webchannel, src_url, total_times):
 
 
 # 停止爬取失败记录
-def stop_toretry_task(pk_webchannel, src_url):
+def stop_toretry_task(pk_webchannel):
     sql = [
-        "update tb_toretry_task set is_stop=1 where pk_webchannel = '%s' and src_url ='%s'"
-        % (pk_webchannel, src_url)]
+        "update tb_toretry_task set is_stop=1 where pk_webchannel = '%s' and total_times>=5"
+        % (pk_webchannel)]
     return execute_sql(sql[0])
 
 
