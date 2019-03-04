@@ -14,7 +14,7 @@ class NhcPublic(PageInfo):
         return page_count
 
     def get_sub_page_url(self, page_index, page_url):
-        return "http://www.nhc.gov.cn/xxgk/getManuscriptByType_manuscript.action?pagedata.pageNum = %d" % page_index
+        return "http://www.nhc.gov.cn/xxgk/getManuscriptByType_manuscript.action?pagedata.pageNum=%d" % page_index
 
     def get_content_list(self, _chrome):
         return _chrome.chrome.find_element_by_tag_name("table").find_elements_by_tag_name("tr")[3:8]
