@@ -18,10 +18,17 @@ gov:
       - [季报, /zwgk/jibao1/ejlist.shtml, 12]
       - [年报, /zwgk/nianb/ejlist.shtml, 9]
       - [统计年鉴, /zwgk/tjnj1/ejlist.shtml, 3]
-      - [法律法规, /zwgk/flfg/ejlist.shtml, 0]
-      - [规划计划, /zwgk/ghjh2/list.shtml, 0]
-      - [委令, /zwgk/wlwl/ejlist.shtml, 0]
-      - [委厅文件, /zwgk/wtwj/ejlist.shtml, 0]
-      - [医疗卫生服务, /zwgk/ylwsfw/spaq_ejlist.shtml, 0]
-      - [公开年报, /zwgk/gknb/ejlist.shtml, 0]
-      - [解读, /zwgk/jdjd/ejlist.shtml, 0]
+      - [法律法规, /zwgk/flfg/ejlist.shtml, 10]
+      - [规划计划, /zwgk/ghjh2/list.shtml, 7]
+      - [委令, /zwgk/wlwl/ejlist.shtml, 21]
+      - [委厅文件, /zwgk/wtwj/ejlist.shtml, 125]
+      - [医疗卫生服务, /zwgk/ylwsfw/spaq_ejlist.shtml, 8]
+      - [公开年报, /zwgk/gknb/ejlist.shtml, 2]
+      - [解读, /zwgk/jdjd/ejlist.shtml, 125]
+  nhcPublic:
+    org_name: 国家卫生健康委员会
+    domain: http://www.nhc.gov.cn
+    channel: http://www.nhc.gov.cn/zwgk/gkml/gkml.shtml
+    max_thread: 1
+    pages:
+      - [信息公开, '/xxgk/getManuscriptByType_manuscript.action?pagedata.pageNum=1', 0]

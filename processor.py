@@ -1,5 +1,6 @@
 import uuid
 import time
+import traceback
 from util.yaml import yaml_read, yaml_write_pages
 from conf.config import Const
 from util import mysql, chrome, file
@@ -15,6 +16,7 @@ def get_page(page_info, page_index, page_name, page_url, page_exec):
     _chrome.get(page_url)
     time.sleep(1)
     page_count = page_info.get_page_count(_chrome)
+    Logger.info("%s下共%d页!" % (page_name, page_count))
     if page_exec == 0:
         get_page_articles(_chrome, page_info, page_name)
         page_info.pages[page_index][2] = 1
@@ -192,5 +194,8 @@ def __main__(page_info):
     page_info.pk_channel = mysql.get_pk_channel(page_info.pk_org, page_info.channel)
     Logger.info("查询机构信息成功，开始抓取数据...")
     retry_failed(page_info)
-    normal_start(page_info)
+    try:
+        normal_start(page_info)
+    except Exception as e:
+        Logger.error("未捕获的异常%s\n%s" % (str(e), traceback.format_exc()))
     Logger.info("本次程序执行完成,退出!")

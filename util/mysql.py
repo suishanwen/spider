@@ -80,7 +80,7 @@ def query_toretry_task(pk_webchannel):
     cur.close()
     conn.close()
     if len(result) == 0:
-        Logger.error("当前channel未找到可重试的失败记录！")
+        Logger.info("当前channel未找到可重试的失败记录！")
     else:
         Logger.info("当前channel共找到%d条可重试的失败记录！" % len(result))
     return list(
