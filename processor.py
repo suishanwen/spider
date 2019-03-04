@@ -19,15 +19,15 @@ def get_page(page_info, page_index, page_name, page_url, page_exec):
         page_info.pages[page_index][2] = 1
         yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
     _chrome.quit()
-    for page_index in range(2, page_count + 1):
-        if page_index <= page_exec:
+    for sub_page_index in range(2, page_count + 1):
+        if sub_page_index <= page_exec:
             continue
         _chrome = chrome.Chrome()
-        _chrome.get(page_info.get_sub_page_url(page_index, page_url))
+        _chrome.get(page_info.get_sub_page_url(sub_page_index, page_url))
         time.sleep(1)
         get_page_articles(_chrome, page_info, page_name)
         _chrome.quit()
-        page_info.pages[page_index][2] = page_index
+        page_info.pages[page_index][2] = sub_page_index
         yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
 
 
@@ -108,18 +108,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
             url_prefix = url[0:url.rfind("/") + 1]
             file_name = "%s.%s" % (title, extension)
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
-            # download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
-            # 同目录下附件
-            if href.find(url_prefix) != -1:
-                full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
-            else:
-                full_path = "%s/%s" % (path, origin_file_name)
-            # try:
-            #     ext.click()
-            #     time.sleep(1)
-            # except Exception:
-            #     Logger.warning("%s chrome下载失败！" % href)
-            # if not file.downloads_done(file_name):
+            full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
             dl_count = 1
             while 1 <= dl_count <= 10:
                 try:
@@ -132,6 +121,15 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
                     dl_count += 1
                     Logger.warning("%s [异常]断点下载失败 %s！" % (href, str(e)))
                     time.sleep(3)
+            if dl_count > 10:
+                download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
+                try:
+                    ext.click()
+                    time.sleep(1)
+                except Exception as e:
+                    Logger.warning("%s chrome下载失败 %s！" % (href, str(e)))
+                if file.downloads_done(file_name) and file.move_file(download_full_path, full_path):
+                    dl_count = 0
             if dl_count == 0:
                 mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
                                      pk_artcl=pk_article,
