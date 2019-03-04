@@ -7,6 +7,7 @@ class PageInfo(object):
         self.domain = ""
         self.channel = ""
         self.pages = []
+        self.max_thread = 1
         # query
         self.pk_org = ""
         self.pk_channel = ""

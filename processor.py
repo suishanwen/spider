@@ -6,6 +6,7 @@ from util import mysql, chrome, file
 from util.logger import Logger
 import selenium.common.exceptions
 from util.download import py_download
+from concurrent.futures import ThreadPoolExecutor
 
 
 # 获取所有分页页面
@@ -167,17 +168,17 @@ def retry_failed(page_info):
 
 # 顺序抓取
 def normal_start(page_info):
-    Logger.info("开始顺序抓取...")
-    for page_index in range(len(page_info.pages)):
-        page = page_info.pages[page_index]
-        page_name = page[0]
-        page_url = page_info.domain + page[1]
-        try:
-            page_exec = page[2]
-        except IndexError:
-            page_exec = 0
-        get_page(page_info, page_index, page_name, page_url, page_exec)
-    Logger.info("顺序抓取完成")
+    Logger.info("开始多线程[%d]顺序抓取..." % page_info.max_thread)
+    with ThreadPoolExecutor(page_info.max_thread) as executor:
+        for page_index in range(len(page_info.pages)):
+            page = page_info.pages[page_index]
+            page_name = page[0]
+            page_url = page_info.domain + page[1]
+            try:
+                page_exec = page[2]
+            except IndexError:
+                page_exec = 0
+            executor.submit(get_page, page_index, page_name, page_url, page_exec)
 
 
 def __main__(page_info):

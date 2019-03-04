@@ -3,6 +3,7 @@ gov:
     org_name: 北京市卫生健康委员会
     domain: http://www.beijing.gov.cn
     channel: http://www.beijing.gov.cn
+    max_thread: 3
     pages:
       - [法律法规, /zfxxgk/110088/flfg22/list.shtml]
       - [规范性文件, /zfxxgk/110088/gfxwj22/list.shtml]
@@ -10,6 +11,7 @@ gov:
     org_name: 国家卫生健康委员会
     domain: http://www.nhc.gov.cn
     channel: http://www.nhc.gov.cn/zwgk/tjxx1/ejflist.shtml
+    max_thread: 3
     pages:
       - [月报, /zwgk/yueb/ejlist.shtml, 27]
       - [公报, /zwgk/gongb/ejlist.shtml, 25]
