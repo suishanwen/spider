@@ -115,8 +115,6 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
                 full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
             else:
                 full_path = "%s/%s" % (path, origin_file_name)
-            # 处理非法路径
-            full_path = file.validate_title(full_path)
             dl_count = 1
             # 下载方式一 读取Content-Lenth 断点下载
             while 1 <= dl_count <= 20:
