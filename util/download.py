@@ -12,7 +12,7 @@ def py_download(url, file_path):
     r1 = requests.get(url, stream=True, verify=False)
     if r1.status_code > 210:
         Logger.warn("错误，状态码为：%d" % r1.status_code)
-        return False
+        return False, r1.status_code
     total_size = int(r1.headers['Content-Length'])
     # 这重要了，先看看本地文件下载了多少
     if os.path.exists(file_path):
@@ -45,7 +45,7 @@ def py_download(url, file_path):
     r = requests.get(url, stream=True, verify=False, headers=headers)
     if r.status_code > 210:
         Logger.warn("错误，状态码为：%d" % r.status_code)
-        return False
+        return False, r.status_code
     # r = requests.get(url, stream=True, verify=False)
     # 下面写入文件也要注意，看到"ab"了吗？
     # "ab"表示追加形式写入文件
@@ -62,8 +62,8 @@ def py_download(url, file_path):
     if total_size == temp_size:
         Logger.info(" %s 下载完成, 总共：%d ,当前：%d" % (url, total_size, temp_size))
         print()  # 避免上面\r 回车符
-        return True
-    return False
+        return True, r.status_code
+    return False, r.status_code
 
 
 def simple_download(url, file_path):

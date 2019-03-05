@@ -121,8 +121,13 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
             while 1 <= dl_count <= 20:
                 try:
                     Logger.warning("%s 开始第%d次断点下载！" % (href, dl_count))
-                    if py_download(href, full_path):
+                    status, code = py_download(href, full_path)
+                    if status:
                         dl_count = 0
+                    elif code == 404:
+                        mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, url, title, pub_time, page_name,
+                                               "404，附件不存在！")
+                        return
                     else:
                         Logger.warning("检测到文件状态有误，重新开始！")
                 except Exception as e:
