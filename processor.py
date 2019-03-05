@@ -118,7 +118,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
                 full_path = "%s/%s" % (path, origin_file_name)
             dl_count = 1
             # 下载方式一 读取Content-Lenth 断点下载
-            while 1 <= dl_count <= 10:
+            while 1 <= dl_count <= 20:
                 try:
                     Logger.warning("%s 开始第%d次断点下载！" % (href, dl_count))
                     if py_download(href, full_path):
@@ -130,7 +130,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
                     Logger.warning("%s [异常]断点下载失败 %s！" % (href, str(e)))
                     time.sleep(3)
             #   下载方式二 chromeDriver 下载
-            if dl_count > 10:
+            if dl_count > 20:
                 download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
                 try:
                     ext.click()
@@ -140,7 +140,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
                 if file.downloads_done(file_name) and file.move_file(download_full_path, full_path):
                     dl_count = 0
             #   下载方式三 普通 下载
-            if dl_count > 10:
+            if dl_count > 20:
                 download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
                 try:
                     if simple_download(href, download_full_path) and file.move_file(download_full_path, full_path):
