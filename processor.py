@@ -130,23 +130,23 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
                     Logger.warning("%s [异常]断点下载失败 %s！" % (href, str(e)))
                     time.sleep(3)
             #   下载方式二 chromeDriver 下载
-            if dl_count > 20:
-                download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
-                try:
-                    ext.click()
-                    time.sleep(1)
-                except Exception as e:
-                    Logger.warning("%s chrome下载失败 %s！" % (href, str(e)))
-                if file.downloads_done(file_name) and file.move_file(download_full_path, full_path):
-                    dl_count = 0
+            # if dl_count > 20:
+            #     download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
+            #     try:
+            #         ext.click()
+            #         time.sleep(1)
+            #     except Exception as e:
+            #         Logger.warning("%s chrome下载失败 %s！" % (href, str(e)))
+            #     if file.downloads_done(file_name) and file.move_file(download_full_path, full_path):
+            #         dl_count = 0
             #   下载方式三 普通 下载
-            if dl_count > 20:
-                download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
-                try:
-                    if simple_download(href, download_full_path) and file.move_file(download_full_path, full_path):
-                        dl_count = 0
-                except Exception as e:
-                    Logger.warning("%s 普通下载失败 %s！" % (href, str(e)))
+            # if dl_count > 20:
+            #     download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
+            #     try:
+            #         if simple_download(href, download_full_path) and file.move_file(download_full_path, full_path):
+            #             dl_count = 0
+            #     except Exception as e:
+            #         Logger.warning("%s 普通下载失败 %s！" % (href, str(e)))
             if dl_count == 0:
                 mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
                                      pk_artcl=pk_article,

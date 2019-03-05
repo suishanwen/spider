@@ -22,7 +22,7 @@ class NhcPublic(PageInfo):
     def get_content_info(self, _chrome, content):
         a = content.find_element_by_tag_name("a")
         public_date = content.find_elements_by_tag_name("td")[2].text
-        title = str(public_date + "_" + a.text)
+        title = str(a.text)
         href = a.get_attribute("href")
         manuscript_id = href[href.find("'") + 1:href.rfind("'")]
         static_url = "http://www.nhc.gov.cn" + \

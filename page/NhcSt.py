@@ -23,7 +23,7 @@ class NhcSt(PageInfo):
     def get_content_info(self, _chrome, content):
         a = content.find_element_by_tag_name("a")
         public_date = content.find_element_by_tag_name("div").text
-        title = str(public_date + "_" + a.get_attribute("title"))
+        title = str(a.get_attribute("title"))
         href = a.get_attribute("href")
         return title, href, public_date
 
