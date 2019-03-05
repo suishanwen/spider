@@ -62,7 +62,7 @@ def write_to_file(full_path, text):
 def validate_title(title):
     r_str = r"[\/\\\:\*\?\"\<\>\|]"  # '/ \ : * ? " < > |'
     new_title = re.sub(r_str, "", title)  # 替换为空
-    spec_char = ["\t", "\r", "\n", " ", ".", "【", "】", "；", "'", "《", "》", "，", "（", "）", "〔", "〕"]
+    spec_char = ["\t", "\r", "\n", " ", ".", "【", "】", "；", "'", "《", "》", "，", "（", "）", "〔", "〕", "：", ":"]
     for c in spec_char:
         new_title = new_title.replace(c, "_")
     return new_title
