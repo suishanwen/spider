@@ -67,3 +67,4 @@ def simple_download(url, file_path):
             if chunk:
                 f.write(chunk)
                 f.flush()
+    return True

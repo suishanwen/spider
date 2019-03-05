@@ -6,7 +6,7 @@ from conf.config import Const
 from util import mysql, chrome, file
 from util.logger import Logger
 import selenium.common.exceptions
-from util.download import py_download
+from util.download import py_download, simple_download
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -117,6 +117,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
             else:
                 full_path = "%s/%s" % (path, origin_file_name)
             dl_count = 1
+            # 下载方式一 读取Content-Lenth 断点下载
             while 1 <= dl_count <= 10:
                 try:
                     Logger.warning("%s 开始第%d次断点下载！" % (href, dl_count))
@@ -128,6 +129,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
                     dl_count += 1
                     Logger.warning("%s [异常]断点下载失败 %s！" % (href, str(e)))
                     time.sleep(3)
+            #   下载方式二 chromeDriver 下载
             if dl_count > 10:
                 download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
                 try:
@@ -137,6 +139,14 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
                     Logger.warning("%s chrome下载失败 %s！" % (href, str(e)))
                 if file.downloads_done(file_name) and file.move_file(download_full_path, full_path):
                     dl_count = 0
+            #   下载方式三 普通 下载
+            if dl_count > 10:
+                download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
+                try:
+                    if simple_download(href, download_full_path) and file.move_file(download_full_path, full_path):
+                        dl_count = 0
+                except Exception as e:
+                    Logger.warning("%s 普通下载失败 %s！" % (href, str(e)))
             if dl_count == 0:
                 mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
                                      pk_artcl=pk_article,
