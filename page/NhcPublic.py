@@ -36,4 +36,9 @@ class NhcPublic(PageInfo):
         return _chrome.multi_find_class(["content", "mb50", "w1100"]).get_attribute('innerHTML')
 
     def get_ext_list(self, _chrome):
-        return _chrome.chrome.find_element_by_class_name("con").find_elements_by_tag_name("a")
+        con_classes = ["con", "content"]
+        ext_a_list = []
+        for _class in con_classes:
+            for ext in _chrome.chrome.find_elements_by_class_name(_class):
+                ext_a_list.append(ext.find_elements_by_tag_name("a"))
+        return ext_a_list

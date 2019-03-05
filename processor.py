@@ -17,8 +17,8 @@ def get_page(page_info, page_index, page_name, page_url, page_exec):
     time.sleep(1)
     page_count = page_info.get_page_count(_chrome)
     Logger.info("%s下共%d页!" % (page_name, page_count))
+    get_page_articles(_chrome, page_info, page_name)
     if page_exec == 0:
-        get_page_articles(_chrome, page_info, page_name)
         page_info.pages[page_index][2] = 1
         yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
     _chrome.quit()
