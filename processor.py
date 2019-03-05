@@ -1,12 +1,11 @@
 import uuid
 import time
-import traceback
 from util.yaml import yaml_read, yaml_write_pages
 from conf.config import Const
 from util import mysql, chrome, file
 from util.logger import Logger
 import selenium.common.exceptions
-from util.download import py_download, simple_download
+from util.download import py_download
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -184,11 +183,15 @@ def retry_failed(page_info):
     Logger.info("重试任务完成")
 
 
-# 顺序抓取
-def normal_start(page_info):
+# 线程池启动抓取
+def startup(page_info):
     Logger.info("开始多线程[%d]顺序抓取..." % page_info.max_thread)
     task_list = []
     with ThreadPoolExecutor(page_info.max_thread) as executor:
+        # 异常抓取重试任务
+        task = executor.submit(retry_failed, page_info)
+        task_list.append(task)
+        # 正常抓取
         for page_index in range(len(page_info.pages)):
             page = page_info.pages[page_index]
             page_name = page[0]
@@ -209,9 +212,5 @@ def __main__(page_info):
     page_info.pk_org = mysql.get_pk_org(page_info.org_name)
     page_info.pk_channel = mysql.get_pk_channel(page_info.pk_org, page_info.channel)
     Logger.info("查询机构信息成功，开始抓取数据...")
-    retry_failed(page_info)
-    try:
-        normal_start(page_info)
-    except Exception as e:
-        Logger.error("未捕获的异常%s\n%s" % (str(e), traceback.format_exc()))
+    startup(page_info)
     Logger.info("本次程序执行完成,退出!")
