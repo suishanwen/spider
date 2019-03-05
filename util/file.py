@@ -60,7 +60,7 @@ def write_to_file(full_path, text):
 
 
 def validate_title(title):
-    r_str = r"[\/\\\:\*\?\"\<\>\|（〔〕）、【】，。]《》"  # '/ \ : * ? " < > |'
+    r_str = r"[\/\\\:\*\?\"\<\>\|（〔〕）、【】，。]《》：？；"  # '/ \ : * ? " < > |'
     new_title = re.sub(r_str, "", title)  # 替换为空
     return new_title.replace("\t", "").replace("\r", "").replace("\n", "").replace(" ", "").replace(".", "")
 
