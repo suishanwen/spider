@@ -35,7 +35,7 @@ def py_download(url, file_path):
         temp_size = 0
     if temp_size == total_size:
         Logger.info(file_path + "已存在")
-        return True
+        return True, 200
     else:
         # 显示一下下载了多少
         Logger.info("开始下载: %s, 总共：%d ,当前：%d" % (url, total_size, temp_size))
