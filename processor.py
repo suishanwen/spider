@@ -78,7 +78,7 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
                                      path=full_path,
                                      pub_time=pub_time)
             Logger.info("写入文章数据成功！")
-            get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name)
+            get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, title, page_name)
         else:
             mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title,
                                    pub_time, page_name, "正文保存失败！")
@@ -89,7 +89,7 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
 
 
 # 获取文章附件
-def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
+def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, article_title, page_name):
     ext_list = []
     try:
         ext_list = page_info.get_ext_list(tmp_chrome)
@@ -162,7 +162,8 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
             else:
                 Logger.warn("%s 附件下载失败!" % href)
                 if not ext_fail:
-                    mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, url, title, pub_time, page_name,
+                    mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, url, article_title, pub_time,
+                                           page_name,
                                            "附件下载失败！")
                     ext_fail = True
 
