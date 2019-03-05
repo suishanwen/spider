@@ -60,5 +60,5 @@ class NhcSt(PageInfo):
         ext_a_list = []
         for _class in con_classes:
             for ext in _chrome.chrome.find_elements_by_class_name(_class):
-                ext_a_list.append(ext.find_elements_by_tag_name("a"))
+                ext_a_list += ext.find_elements_by_tag_name("a")
         return ext_a_list
