@@ -119,7 +119,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, page_name):
             # 下载方式一 读取Content-Lenth 断点下载
             while 1 <= dl_count <= 20:
                 try:
-                    Logger.warning("%s 开始第%d次断点下载！" % (href, dl_count))
+                    Logger.warning("%s->%s 开始第%d次断点下载！" % (href, full_path, dl_count))
                     status, code = py_download(href, full_path)
                     if status:
                         dl_count = 0
