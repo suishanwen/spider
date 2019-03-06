@@ -11,11 +11,22 @@ class PageInfo(object):
         # query
         self.pk_org = ""
         self.pk_channel = ""
+        # for update
+        self.known_hosts = []
 
     def from_dict(self, _dict):
         for name, value in vars(self).items():
             if name in _dict:
                 setattr(self, name, _dict[name])
+
+    def append_host(self, url):
+        self.known_hosts.append(url)
+
+    def contains_host(self, url):
+        for host in self.known_hosts:
+            if host in url:
+                return True
+        return False
 
     def set_pk_org(self, pk_org):
         self.pk_org = pk_org

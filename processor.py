@@ -120,7 +120,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, article_title
             while 1 <= dl_count <= 10:
                 try:
                     Logger.warning("%s->%s 开始第%d次断点下载！" % (href, full_path, dl_count))
-                    status, code = py_download(href, full_path)
+                    status, code = py_download(href, full_path, page_info)
                     if status:
                         dl_count = 0
                     elif code == 404:
@@ -212,6 +212,7 @@ def __main__(page_info):
     page_info.from_dict(yaml_read(Const.GOV_YAML, ("gov", page_info.section)))
     page_info.pk_org = mysql.get_pk_org(page_info.org_name)
     page_info.pk_channel = mysql.get_pk_channel(page_info.pk_org, page_info.channel)
+    page_info.append_host(page_info.domain)
     Logger.info("查询机构信息成功，开始抓取数据...")
     startup(page_info)
     Logger.info("本次程序执行完成,退出!")

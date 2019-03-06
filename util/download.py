@@ -2,12 +2,21 @@ import sys
 import requests
 import os, stat, time
 from util.logger import Logger
+from util.chrome import Chrome
 
 # 屏蔽warning信息
 requests.packages.urllib3.disable_warnings()
 
 
-def py_download(url, file_path):
+def py_download(url, file_path, page_info):
+    # 请求未识别的host
+    host = url[0:url.find("/", 8)]
+    if not page_info.contains_host(host):
+        Logger.warn("请求未识别的host:%s" % host)
+        driver = Chrome()
+        driver.get(host)
+        page_info.append_host(host)
+        driver.quit()
     # 第一次请求是为了得到文件总大小
     r1 = requests.get(url, stream=True, verify=False)
     if r1.status_code > 210:
