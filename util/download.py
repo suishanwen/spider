@@ -10,7 +10,10 @@ requests.packages.urllib3.disable_warnings()
 
 def py_download(url, file_path):
     # 第一次请求是为了得到文件总大小
-    r1 = requests.get(url, stream=True, verify=False)
+    try:
+        r1 = requests.get(url, stream=True, verify=False)
+    except requests.exceptions.ConnectionError:
+        return False, 400
     if r1.status_code > 210:
         Logger.warn("错误，状态码为：%d" % r1.status_code)
         return False, r1.status_code
