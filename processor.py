@@ -124,9 +124,9 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, article_title
                     if status:
                         dl_count = 0
                     elif code == 400:
-                        Logger.warning("网站链接异常无法访问！")
+                        Logger.warning("附件链接异常无法访问！")
                         mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, url, title, pub_time, page_name,
-                                               "网站链接异常无法访问！")
+                                               "附件链接异常无法访问！")
                         return
                     elif code == 404:
                         Logger.warning("404，附件不存在！")
