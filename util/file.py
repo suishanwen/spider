@@ -62,7 +62,7 @@ def write_to_file(full_path, text):
 def validate_title(title):
     r_str = r"[\/\\\:\*\?\"\<\>\|]"  # '/ \ : * ? " < > |'
     title_dir = re.sub(r_str, "", title)  # 替换为空
-    spec_char = ["\t", "\r", "\n", " ", ".", "【", "】", "；", "'", "《", "》", "，", "（", "）", "〔", "〕", "：", ":"]
+    spec_char = ["\u3000", "\t", "\r", "\n", " ", ".", "【", "】", "；", "'", "《", "》", "，", "（", "）", "〔", "〕", "：", ":"]
     for c in spec_char:
         title_dir = title_dir.replace(c, "_")
     if len(title_dir) > 30:

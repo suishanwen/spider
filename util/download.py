@@ -2,16 +2,26 @@ import sys
 import requests
 import os, stat, time
 from util.logger import Logger
-from util.chrome import Chrome
 
 # 屏蔽warning信息
 requests.packages.urllib3.disable_warnings()
 
 
 def py_download(url, file_path):
+    headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Language': 'zh-CN,zh;q=0.9',
+        'Connection': 'keep-alive',
+        'Host': url[0:url.find('/', 8)],
+        'Upgrade-Insecure-Requests': '1',
+        # 'Referer': url,
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
+        # 'X-Requested-With': 'XMLHttpRequest',
+    }
     # 第一次请求是为了得到文件总大小
     try:
-        r1 = requests.get(url, stream=True, verify=False)
+        r1 = requests.get(url, stream=True, verify=False, headers=headers)
     except requests.exceptions.ConnectionError:
         return False, 400
     if r1.status_code > 210:
@@ -44,7 +54,7 @@ def py_download(url, file_path):
         # 显示一下下载了多少
         Logger.info("开始下载: %s, 总共：%d ,当前：%d" % (url, total_size, temp_size))
     # 核心部分，这个是请求下载时，从本地文件已经下载过的后面下载
-    headers = {'Range': 'bytes=%d-' % temp_size}
+    headers['Range'] = 'bytes=%d-' % temp_size
     # 重新请求网址，加入新的请求头的
     r = requests.get(url, stream=True, verify=False, headers=headers)
     if r.status_code > 210:
@@ -71,10 +81,21 @@ def py_download(url, file_path):
 
 
 def simple_download(url, file_path):
-    r = requests.get(url, stream=True, verify=False)
+    headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Language': 'zh-CN,zh;q=0.9',
+        'Connection': 'keep-alive',
+        'Host': url[0:url.find('/', 8)],
+        'Upgrade-Insecure-Requests': '1',
+        # 'Referer': url,
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
+        # 'X-Requested-With': 'XMLHttpRequest',
+    }
+    r = requests.get(url, stream=True, verify=False, headers=headers)
     with open(file_path, "ab") as f:
         for chunk in r.iter_content(chunk_size=1024):
             if chunk:
                 f.write(chunk)
                 f.flush()
-    return True
+    return 200, True
