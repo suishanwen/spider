@@ -61,11 +61,13 @@ def write_to_file(full_path, text):
 
 def validate_title(title):
     r_str = r"[\/\\\:\*\?\"\<\>\|]"  # '/ \ : * ? " < > |'
-    new_title = re.sub(r_str, "", title)  # 替换为空
+    title_dir = re.sub(r_str, "", title)  # 替换为空
     spec_char = ["\t", "\r", "\n", " ", ".", "【", "】", "；", "'", "《", "》", "，", "（", "）", "〔", "〕", "：", ":"]
     for c in spec_char:
-        new_title = new_title.replace(c, "_")
-    return new_title
+        title_dir = title_dir.replace(c, "_")
+    if len(title_dir) > 30:
+        title_dir = title_dir[0:30]
+    return title_dir
 
 
 def get_file_extension(filename):
