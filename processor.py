@@ -32,6 +32,7 @@ def get_page(page_info, page_index, page_name, page_url, page_exec):
         _chrome.quit()
         # 增量抓取 并 连续3页出现已抓取 = 抓取完毕
         if exist and (sub_page_index + page_exec) > page_count + 3:
+            Logger.info("增量抓取并连续3页出现已抓取,抓取完毕")
             page_info.pages[page_index][2] = page_count
             yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
             break
