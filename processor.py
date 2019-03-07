@@ -142,7 +142,7 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
         while 1 <= dl_count <= 10:
             try:
                 Logger.warning("%s->%s 开始第%d次断点下载！" % (attachment.url, attachment.file_path, dl_count))
-                status, code = py_download(attachment.file_path, attachment.file_path)
+                status, code = py_download(attachment.url, attachment.file_path)
                 if status:
                     dl_count = 0
                 elif code == 400 and dl_count >= 3:
