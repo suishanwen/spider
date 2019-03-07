@@ -175,3 +175,24 @@ def get_pk_channel(pk_org, web_site_url):
         Logger.error("未找到Channel,pk_org:%s ,web_site_url:%s" % (pk_org, web_site_url))
         exit()
     return result[0][0]
+
+
+# 获取channel
+def get_channels():
+    sql = [
+        "select pk_org,pk_channel,web_site_url,rulecode from mdm_webchannel where rulecode is not null"
+        " and rulecode <> ''"]
+    conn = get_connect()
+    cur = conn.cursor()
+    cur.execute(sql[0])
+    result = cur.fetchall()
+    cur.close()
+    conn.close()
+    if len(result) == 0:
+        Logger.warn("未找到可用channel！")
+        exit()
+    else:
+        Logger.warn("共找到%d条可启动channel！" % len(result))
+    return list(
+        map(lambda data: {"pk_org": data[0], "pk_channel": data[1], "web_site_url": data[2], "rulecode": data[3]},
+            result))

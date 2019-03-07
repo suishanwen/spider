@@ -212,11 +212,11 @@ def startup(page_info):
             Logger.info("线程[%s]执行完成" % str(task))
 
 
-def __main__(page_info):
-    Logger.info("程序启动")
+def __main__(page_info, pk_org, pk_channel):
+    Logger.info("~channel:%s 启动~" % pk_channel)
     page_info.from_dict(yaml_read(Const.GOV_YAML, ("gov", page_info.section)))
-    page_info.pk_org = mysql.get_pk_org(page_info.org_name)
-    page_info.pk_channel = mysql.get_pk_channel(page_info.pk_org, page_info.channel)
+    page_info.pk_org = pk_org
+    page_info.pk_channel = pk_channel
     Logger.info("查询机构信息成功，开始抓取数据...")
     startup(page_info)
-    Logger.info("本次程序执行完成,退出!")
+    Logger.info("channel:%s执行完成,退出!" % pk_channel)
