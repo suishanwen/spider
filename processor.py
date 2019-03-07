@@ -16,19 +16,25 @@ def get_page(page_info, page_index, page_name, page_url, page_exec):
     time.sleep(1)
     page_count = page_info.get_page_count(_chrome)
     Logger.info("%s下共%d页!" % (page_name, page_count))
-    get_page_articles(_chrome, page_info, page_name)
+    exist = get_page_articles(_chrome, page_info, page_name)
     if page_exec == 0:
         page_info.pages[page_index][2] = 1
         yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
     _chrome.quit()
     for sub_page_index in range(2, page_count + 1):
-        if sub_page_index <= page_exec:
+        # 断页续抓
+        if sub_page_index <= page_exec and exist:
             continue
         _chrome = chrome.Chrome()
         _chrome.get(page_info.get_sub_page_url(sub_page_index, page_url))
         time.sleep(1)
-        get_page_articles(_chrome, page_info, page_name)
+        exist = get_page_articles(_chrome, page_info, page_name)
         _chrome.quit()
+        # 增量抓取 并 连续3页出现已抓取 = 抓取完毕
+        if exist and (sub_page_index + page_exec) > page_count + 3:
+            page_info.pages[page_index][2] = page_count
+            yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
+            break
         page_info.pages[page_index][2] = sub_page_index
         yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
 
@@ -37,16 +43,20 @@ def get_page(page_info, page_index, page_name, page_url, page_exec):
 def get_page_articles(_chrome, page_info, page_name):
     content_list = page_info.get_content_list(_chrome)
     tmp_chrome = chrome.Chrome()
+    # 当前页是否存在已抓取
+    exist = False
     for i in range(len(content_list)):
         # 获取时间_标题、原始链接、发布时间
         title, href, pub_time = page_info.get_content_info(_chrome, content_list[i])
         # 检查是否已爬取
         if mysql.check_exist(title, href):
             Logger.info("%s(%s)已抓取,跳过" % (title, href))
+            exist = True
             continue
         get_article(tmp_chrome, title, href, pub_time, page_info, page_name)
     Logger.info("当前页 %s 抓取完成 " % (_chrome.current_url()))
     tmp_chrome.quit()
+    return exist
 
 
 # 获取文章
