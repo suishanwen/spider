@@ -23,7 +23,7 @@ gov:
     - [月报, /zwgk/yueb/ejlist.shtml, 1]
     - [公报, /zwgk/gongb/ejlist.shtml, 0]
     - [季报, /zwgk/jibao1/ejlist.shtml, 1]
-    - [年报, /zwgk/nianb/ejlist.shtml, 0]
+    - [年报, /zwgk/nianb/ejlist.shtml, 1]
     - [统计年鉴, /zwgk/tjnj1/ejlist.shtml, 0]
     - [法律法规, /zwgk/flfg/ejlist.shtml, 0]
     - [规划计划, /zwgk/ghjh2/list.shtml, 0]
