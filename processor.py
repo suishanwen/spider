@@ -134,7 +134,7 @@ def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, article_title
                     status, code = py_download(href, full_path)
                     if status:
                         dl_count = 0
-                    elif code == 400 and dl_count == 10:
+                    elif code == 400 and dl_count >= 3:
                         Logger.warning("附件链接异常无法访问！")
                         mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, url, title, pub_time, page_name,
                                                "附件链接异常无法访问！")
