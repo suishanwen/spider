@@ -1,12 +1,13 @@
 import uuid
 import time
+import selenium.common.exceptions
 from util.yaml import yaml_read, yaml_write_pages
 from conf.config import Const
 from util import mysql, chrome, file
 from util.logger import Logger
-import selenium.common.exceptions
 from util.download import py_download
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from model.Attachment import Attachment
 
 
 # 获取所有分页页面
@@ -76,20 +77,27 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
         return
     # 获取正文
     try:
+        pk_article = str(uuid.uuid4())
         content = page_info.get_content(tmp_chrome)
+        attachments = get_ext(tmp_chrome, page_info, dir_name, pk_article)
+        # 替换附件路径
+        for attachment in attachments:
+            attachment_uri = attachment.url[attachment.url.rfind("/") + 1:len(attachment.url)]
+            content.replace(attachment.url, attachment.local_href)
+            content.replace(attachment_uri, attachment.local_href)
         full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
         if file.write_to_file(full_path, content):
             Logger.info("摘取正文，保存页面成功！")
-            pk_article = str(uuid.uuid4())
             mysql.insert_html_record(pk_artcl=pk_article,
                                      pk_org=page_info.pk_org,
                                      pk_channel=page_info.pk_channel,
                                      title=title,
-                                     src_url=str(href),
+                                     src_url=href,
                                      path=full_path,
                                      pub_time=pub_time)
             Logger.info("写入文章数据成功！")
-            get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, title, page_name)
+            download_attachments(attachments, page_info.pk_channel, pk_article, href, title, pub_time, page_name)
+
         else:
             mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title,
                                    pub_time, page_name, "正文保存失败！")
@@ -99,88 +107,75 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
                                "文章获取异常！{0}".format(str(e)).replace("'", '"'))
 
 
-# 获取文章附件
-def get_ext(tmp_chrome, page_info, dir_name, pk_article, pub_time, article_title, page_name):
+# 获取文章附件列表
+def get_ext(tmp_chrome, page_info, dir_name, page_name):
     ext_list = []
     try:
         ext_list = page_info.get_ext_list(tmp_chrome)
     except selenium.common.exceptions.NoSuchElementException:
         Logger.info("未找到附件!")
-    ext_fail = False
+    attachments = []
     for ext in ext_list:
         href = ext.get_attribute('href')
         if href and file.is_appendix_file(href):
-            extension = file.get_file_extension(href)
+            extension_name = file.get_file_extension(href)
             title = ext.text
             origin_file_name = href[href.rfind("/") + 1: len(href)]
             if not title:
                 title = origin_file_name
-            if title.find('.%s' % extension) != -1:
-                title = title.replace('.%s' % extension, "")
-            url = tmp_chrome.current_url()
-            url_prefix = url[0:url.rfind("/") + 1]
-            file_name = "%s.%s" % (title, extension)
+            if title.find('.%s' % extension_name) != -1:
+                title = title.replace('.%s' % extension_name, "")
+            file_name = "%s.%s" % (title, extension_name)
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
-            # 同目录下附件
-            if href.find(url_prefix) != -1:
-                full_path = "%s/%s" % (path, href.replace(url_prefix, ""))
-            else:
-                full_path = "%s/%s" % (path, origin_file_name)
-            dl_count = 1
-            # 下载方式一 读取Content-Lenth 断点下载
-            while 1 <= dl_count <= 10:
-                try:
-                    Logger.warning("%s->%s 开始第%d次断点下载！" % (href, full_path, dl_count))
-                    status, code = py_download(href, full_path)
-                    if status:
-                        dl_count = 0
-                    elif code == 400 and dl_count >= 3:
-                        Logger.warning("附件链接异常无法访问！")
-                        mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, url, title, pub_time, page_name,
-                                               "附件链接异常无法访问！")
-                    elif code == 404:
-                        Logger.warning("404，附件不存在！")
-                        mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, url, title, pub_time, page_name,
-                                               "404，附件不存在！")
-                        return
-                    else:
-                        Logger.warning("检测到文件状态有误，重新开始！")
-                except Exception as e:
-                    dl_count += 1
-                    Logger.warning("%s [异常]断点下载失败 %s！" % (href, str(e)))
-                    time.sleep(3)
-            #   下载方式二 chromeDriver 下载
-            # if dl_count > 10:
-            #     download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
-            #     try:
-            #         ext.click()
-            #         time.sleep(1)
-            #     except Exception as e:
-            #         Logger.warning("%s chrome下载失败 %s！" % (href, str(e)))
-            #     if file.downloads_done(file_name) and file.move_file(download_full_path, full_path):
-            #         dl_count = 0
-            #   下载方式三 普通 下载
-            # if dl_count > 10:
-            #     download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, origin_file_name)
-            #     try:
-            #         if simple_download(href, download_full_path) and file.move_file(download_full_path, full_path):
-            #             dl_count = 0
-            #     except Exception as e:
-            #         Logger.warning("%s 普通下载失败 %s！" % (href, str(e)))
-            if dl_count == 0:
-                mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
-                                     pk_artcl=pk_article,
-                                     file_type_name=extension,
-                                     file_name=file_name,
-                                     file_path=full_path)
-                Logger.info("写入文章附件mapping成功！")
-            else:
-                Logger.warn("%s 附件下载失败!" % href)
-                if not ext_fail:
-                    mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, url, article_title, pub_time,
+            full_path = "%s/%s" % (path, origin_file_name)
+            local_ext_href = full_path.replace(path, "")
+            attachments.append(Attachment(href, file_name, extension_name, full_path, local_ext_href))
+    return attachments
+
+
+def download_attachments(attachments, pk_channel, pk_article, article_url, article_title, pub_time, page_name):
+    # 标识是否失败过、一个文章只存一次失败记录
+    ext_fail = False
+    for attachment in attachments:
+        dl_count = 1
+        # 下载方式一 读取Content-Lenth 断点下载
+        while 1 <= dl_count <= 10:
+            try:
+                Logger.warning("%s->%s 开始第%d次断点下载！" % (attachment.url, attachment.file_path, dl_count))
+                status, code = py_download(attachment.file_path, attachment.file_path)
+                if status:
+                    dl_count = 0
+                elif code == 400 and dl_count >= 3:
+                    Logger.warning("附件链接异常无法访问！")
+                    mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,
                                            page_name,
-                                           "附件下载失败！")
-                    ext_fail = True
+                                           "附件链接异常无法访问！")
+                elif code == 404:
+                    Logger.warning("404，附件不存在！")
+                    mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,
+                                           page_name,
+                                           "404，附件不存在！")
+                    return
+                else:
+                    Logger.warning("检测到文件状态有误，重新开始！")
+            except Exception as e:
+                dl_count += 1
+                Logger.warning("%s [异常]断点下载失败 %s！" % (attachment.url, str(e)))
+                time.sleep(3)
+        if dl_count == 0:
+            mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
+                                 pk_artcl=pk_article,
+                                 file_type_name=attachment.file_type_name,
+                                 file_name=attachment.file_name,
+                                 file_path=attachment.file_path)
+            Logger.info("写入文章附件mapping成功！")
+        else:
+            Logger.warn("%s 附件下载失败!" % attachment.url)
+            if not ext_fail:
+                mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,
+                                       page_name,
+                                       "附件下载失败！")
+                ext_fail = True
 
 
 # 异常抓取重试任务
