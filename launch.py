@@ -1,6 +1,5 @@
 import processor
 import time
-import threading
 
 from util import mysql
 from util.logger import Logger
