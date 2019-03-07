@@ -79,7 +79,7 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
     try:
         pk_article = str(uuid.uuid4())
         content = page_info.get_content(tmp_chrome)
-        attachments = get_ext(tmp_chrome, page_info, dir_name, pk_article)
+        attachments = get_ext(tmp_chrome, page_info, dir_name, page_name)
         # 替换附件路径
         for attachment in attachments:
             attachment_uri = attachment.url[attachment.url.rfind("/") + 1:len(attachment.url)]
