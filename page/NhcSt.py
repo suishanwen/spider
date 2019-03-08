@@ -40,7 +40,7 @@ class NhcSt(PageInfo):
             else:
                 _chrome.get(url)
                 time.sleep(1)
-        return _chrome.multi_find_class(["mb50", "brcon", "content", "zwcon"]).get_attribute('innerHTML')
+        return _chrome.multi_find_class(["mb50", "brcon", "zwcon", "content"]).get_attribute('innerHTML')
 
     def get_ext_list(self, _chrome):
         if _chrome.current_url().find("helpcontents.html") != -1:
