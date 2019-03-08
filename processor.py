@@ -159,7 +159,7 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
                                                "404，附件不存在！")
                         return
                     else:
-                        Logger.warning("检测到文件状态有误，重新开始！")
+                        Logger.warning("下载未成功，重新开始！")
                     dl_count += 1
             except Exception as e:
                 dl_count += 1
