@@ -85,6 +85,7 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
             attachment_uri = attachment.url[attachment.url.find("/", 8):len(attachment.url)]
             content = content.replace(attachment.url, attachment.local_href)
             content = content.replace(attachment_uri, attachment.local_href)
+            content = page_info.replace_ext_url(content, attachment)
         full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
         if file.write_to_file(full_path, content):
             Logger.info("摘取正文，保存页面成功！")
