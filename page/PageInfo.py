@@ -43,3 +43,6 @@ class PageInfo(object):
 
     def get_ext_list(self, _chrome):
         pass
+
+    def replace_ext_url(self, content, attachment):
+        return content

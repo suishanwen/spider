@@ -42,3 +42,9 @@ class NhcPublic(PageInfo):
             for ext in _chrome.chrome.find_elements_by_class_name(_class):
                 ext_a_list += ext.find_elements_by_tag_name("a")
         return ext_a_list
+
+    def replace_ext_url(self, content, attachment):
+        attachment_uri = attachment.url[attachment.url.find("/", 8):len(attachment.url)]
+        relate_img = attachment_uri[0:attachment_uri.rfind(".")] + "_s" + "." + attachment.file_type_name
+        return content.replace(relate_img,
+                               attachment.local_href)
