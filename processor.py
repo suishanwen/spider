@@ -145,11 +145,12 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
                 status, code = py_download(attachment.url, attachment.file_path)
                 if status:
                     dl_count = 0
-                elif code == 400 and dl_count >= 3:
+                elif code == 400:
                     Logger.warning("附件链接异常无法访问！")
                     mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,
                                            page_name,
                                            "附件链接异常无法访问！")
+                    return
                 elif code == 404:
                     Logger.warning("404，附件不存在！")
                     mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,

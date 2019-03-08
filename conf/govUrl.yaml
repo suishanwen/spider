@@ -20,13 +20,13 @@ gov:
     max_thread: 3
     org_name: 国家卫生健康委员会
     pages:
-    - [月报, /zwgk/yueb/ejlist.shtml, 0]
+    - [月报, /zwgk/yueb/ejlist.shtml, 1]
     - [公报, /zwgk/gongb/ejlist.shtml, 0]
-    - [季报, /zwgk/jibao1/ejlist.shtml, 0]
-    - [年报, /zwgk/nianb/ejlist.shtml, 0]
-    - [统计年鉴, /zwgk/tjnj1/ejlist.shtml, 0]
-    - [法律法规, /zwgk/flfg/ejlist.shtml, 0]
-    - [规划计划, /zwgk/ghjh2/list.shtml, 0]
+    - [季报, /zwgk/jibao1/ejlist.shtml, 1]
+    - [年报, /zwgk/nianb/ejlist.shtml, 3]
+    - [统计年鉴, /zwgk/tjnj1/ejlist.shtml, 3]
+    - [法律法规, /zwgk/flfg/ejlist.shtml, 6]
+    - [规划计划, /zwgk/ghjh2/list.shtml, 1]
     - [委令, /zwgk/wlwl/ejlist.shtml, 0]
     - [委厅文件, /zwgk/wtwj/ejlist.shtml, 0]
     - [医疗卫生服务, /zwgk/ylwsfw/spaq_ejlist.shtml, 0]
