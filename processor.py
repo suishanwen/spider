@@ -73,7 +73,7 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
     if page_info.check_content_not_exist(tmp_chrome):
         Logger.info("404，文章不存在，跳过！")
         mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title, pub_time, page_name,
-                               "文章不存在，跳过！")
+                               "404，文章不存在，跳过！")
         return
     # 获取正文
     try:
