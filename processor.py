@@ -84,7 +84,7 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
         attachments = get_ext(tmp_chrome, page_info, dir_name, page_name)
         # 替换附件路径
         for attachment in attachments:
-            match_list = re.findall(r"\"(/.*{})".format(attachment.file_name), content, re.M | re.I)
+            match_list = re.findall(r"\"(/.*{})".format(str(attachment.file_name)), content, re.M | re.I)
             for url in match_list:
                 content = content.replace(url, attachment.local_href)
             content = page_info.replace_ext_url(content, attachment)
