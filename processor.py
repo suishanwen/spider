@@ -138,7 +138,7 @@ def get_ext(tmp_chrome, page_info, dir_name, page_name):
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
             full_path = "%s/%s" % (path, origin_file_name)
             local_ext_href = "." + full_path.replace(path, "")
-            attachments.append(Attachment(href, file_name, extension_name, full_path, local_ext_href))
+            attachments.append(Attachment(href, origin_file_name, extension_name, full_path, local_ext_href))
     return attachments
 
 
