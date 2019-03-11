@@ -1,6 +1,6 @@
 from selenium import webdriver
 from conf.config import Const
-import selenium.common.exceptions
+from selenium.common.exceptions import NoSuchElementException
 import time
 from util.logger import Logger
 
@@ -36,7 +36,7 @@ class Chrome():
         try:
             result = self.chrome.find_element_by_class_name(class_name)
             return result
-        except selenium.common.exceptions.NoSuchElementException as e:
+        except NoSuchElementException:
             Logger.warn("未找到class[%s]，刷新页面%d次" % (class_name, count))
             count += 1
             if count < 10:
@@ -45,21 +45,21 @@ class Chrome():
                 return self.find_class(class_name, count)
             else:
                 Logger.error("连续刷新页面%d次未找到class[%s]" % (count, class_name))
-                raise e
+                raise NoSuchElementException("连续刷新页面%d次未找到class[%s]" % (count, class_name))
 
     def multi_find_class(self, class_names, count=1):
         for class_name in class_names:
             try:
                 result = self.chrome.find_element_by_class_name(class_name)
                 return result
-            except selenium.common.exceptions.NoSuchElementException:
+            except NoSuchElementException:
                 Logger.warn("未找到class[%s]" % class_name)
         self.refresh()
         time.sleep(10)
         Logger.error("第%d次未找到classes[%s]" % (count, class_names))
         if count == 10:
             Logger.error("连续刷新页面%d次未找到classes[%s]" % (count, class_names))
-            raise selenium.common.exceptions.NoSuchElementException
+            raise NoSuchElementException("连续刷新页面%d次未找到classes[%s]" % (count, class_names))
         count += 1
         return self.multi_find_class(class_names, count)
 
