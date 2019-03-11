@@ -1,4 +1,3 @@
-import re
 import uuid
 import time
 import traceback
@@ -90,9 +89,7 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
         attachments = get_ext(tmp_chrome, page_info, dir_name, page_name)
         # 替换附件路径
         for attachment in attachments:
-            match_list = re.findall(r"\"(/.*{})".format(str(attachment.file_name)), content, re.M | re.I)
-            for url in match_list:
-                content = content.replace(url, attachment.local_href)
+            content = file.replace_local_file(content, str(attachment.file_name), attachment.local_path)
             content = page_info.replace_ext_url(content, attachment)
         full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
         if file.write_to_file(full_path, content):
@@ -138,7 +135,7 @@ def get_ext(tmp_chrome, page_info, dir_name, page_name):
             path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
             full_path = "%s/%s" % (path, origin_file_name)
             local_ext_href = "." + full_path.replace(path, "")
-            attachments.append(Attachment(href, origin_file_name, extension_name, full_path, local_ext_href))
+            attachments.append(Attachment(href, origin_file_name, file_name, extension_name, full_path, local_ext_href))
     return attachments
 
 

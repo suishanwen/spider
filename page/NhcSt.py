@@ -1,7 +1,6 @@
 from page.PageInfo import PageInfo
-from util.file import is_appendix_file
+from util import file
 import time
-import re
 
 
 class NhcSt(PageInfo):
@@ -58,7 +57,7 @@ class NhcSt(PageInfo):
                 for a in a_list:
                     href = a.get_attribute('href')
                     # 过滤去重
-                    if is_appendix_file(href) and len(
+                    if file.is_appendix_file(href) and len(
                             list(filter(lambda x: True if x.get_attribute('href') == href else False,
                                         a_result))) == 0:
                         a_result.append(a)
@@ -71,9 +70,7 @@ class NhcSt(PageInfo):
         return ext_a_list
 
     def replace_ext_url(self, content, attachment):
-        relate_img_name = attachment.file_name[
-                          0:attachment.file_name.rfind(".")] + "_s" + "." + attachment.file_type_name
-        match_list = re.findall(r"\"(/.*{})".format(relate_img_name), content, re.M | re.I)
-        if match_list:
-            return content.replace(match_list[0],
-                                   attachment.local_href)
+        return file.replace_local_file(content, attachment.file_name[
+                                                0:attachment.file_name.rfind(
+                                                    ".")] + "_s" + "." + attachment.file_type_name,
+                                       attachment.local_path)

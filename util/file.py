@@ -140,3 +140,16 @@ def downloads_done(file_name):
     else:
         logging.info("chrome下载附件失败！")
     return succ
+
+
+def replace_local_file(content, file_name, local_path):
+    _len = len(file_name)
+    end = content.find(file_name)
+    while end != -1:
+        part = content[0:end + _len]
+        start = part.rfind("\"")
+        remote_path = part[start + 1:end + _len]
+        print(remote_path)
+        content = content.replace(remote_path, local_path)
+        end = content.find(file_name, end + _len)
+    return content
