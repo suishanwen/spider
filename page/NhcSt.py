@@ -28,15 +28,21 @@ class NhcSt(PageInfo):
         href = a.get_attribute("href")
         return title, href, public_date
 
-    def check_content_not_exist(self, _chrome):
-        return _chrome.page_source().find('<h1>Not Found</h1>') != -1
+    def check_content_status(self, _chrome):
+        content = _chrome.page_source()
+        code = 200
+        if content.find('<h1>Not Found</h1>') != -1:
+            code = 404
+        elif content.find('<h1>Forbidden</h1>') != -1:
+            code = 403
+        return code
 
     def get_content(self, _chrome):
         if _chrome.page_source().find("年鉴") != -1 or _chrome.current_url().find("tjnj") != -1:
             url = _chrome.current_url()
             helper_url = url[0:url.rfind("/") + 1] + "helpcontents.html"
             _chrome.get(helper_url)
-            if not self.check_content_not_exist(_chrome):
+            if self.check_content_status(_chrome) == 200:
                 return _chrome.page_source()
             else:
                 _chrome.get(url)

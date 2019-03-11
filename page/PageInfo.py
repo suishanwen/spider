@@ -35,8 +35,8 @@ class PageInfo(object):
     def get_content_info(self, _chrome, content):
         pass
 
-    def check_content_not_exist(self, _chrome):
-        pass
+    def check_content_status(self, _chrome):
+        return 200
 
     def get_content(self, _chrome):
         pass

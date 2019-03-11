@@ -72,10 +72,16 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
     tmp_chrome.get(href)
     time.sleep(1)
     # 检查是否正常打开页面
-    if page_info.check_content_not_exist(tmp_chrome):
+    code = page_info.check_content_status(tmp_chrome)
+    if code == 404:
         Logger.info("404，文章不存在，跳过！")
         mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title, pub_time, page_name,
                                "404，文章不存在，跳过！")
+        return
+    elif code == 403:
+        Logger.info("403，文章无权限查看，跳过！")
+        mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title, pub_time, page_name,
+                               "403，文章无权限查看，跳过！")
         return
     # 获取正文
     try:
