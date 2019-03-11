@@ -40,7 +40,7 @@ class NhcPublic(PageInfo):
         return code
 
     def get_content(self, _chrome):
-        return _chrome.multi_find_class(["content", "mb50", "w1100"]).get_attribute('innerHTML')
+        return _chrome.multi_find_class(["content", "mb50", "wrap", "w1100"]).get_attribute('innerHTML')
 
     def get_ext_list(self, _chrome):
         con_classes = ["con", "content"]
