@@ -16,6 +16,9 @@ def py_download(url, file_path):
     if r1.status_code > 210:
         Logger.warn("错误，状态码为：%d" % r1.status_code)
         return False, r1.status_code
+    if not r1.headers.get('Content-Length'):
+        Logger.warn("文件不支持断点下载!")
+        return False, 110
     total_size = int(r1.headers['Content-Length'])
     # 这重要了，先看看本地文件下载了多少
     if os.path.exists(file_path):
@@ -70,21 +73,11 @@ def py_download(url, file_path):
 
 
 def simple_download(url, file_path):
-    headers = {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
-        'Connection': 'keep-alive',
-        'Host': url[0:url.find('/', 8)],
-        'Upgrade-Insecure-Requests': '1',
-        # 'Referer': url,
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
-        # 'X-Requested-With': 'XMLHttpRequest',
-    }
-    r = requests.get(url, stream=True, verify=False, headers=headers)
-    with open(file_path, "ab") as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
-                f.flush()
-    return 200, True
+    response = requests.get(url, stream=True)
+    if response.status_code < 210:
+        handle = open(file_path, "wb")
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:  # filter out keep-alive new chunks
+                handle.write(chunk)
+    print(response.status_code)
+    return response.status_code < 210, response.status_code

@@ -9,6 +9,7 @@ from util.logger import Logger
 from util.download import py_download
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from model.Attachment import Attachment
+from model.DownloadStatus import DownloadStatus
 
 
 # 获取所有分页页面
@@ -102,7 +103,8 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
                                      path=full_path,
                                      pub_time=pub_time)
             Logger.info("写入文章数据成功！")
-            download_attachments(attachments, page_info.pk_channel, pk_article, href, title, pub_time, page_name)
+            download_attachments(attachments, page_info.pk_channel, pk_article, href, title, pub_time, page_name,
+                                 tmp_chrome)
 
         else:
             mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title,
@@ -139,7 +141,8 @@ def get_ext(tmp_chrome, page_info, dir_name, page_name):
     return attachments
 
 
-def download_attachments(attachments, pk_channel, pk_article, article_url, article_title, pub_time, page_name):
+def download_attachments(attachments, pk_channel, pk_article, article_url, article_title, pub_time, page_name,
+                         tmp_chrome):
     # 标识是否失败过、一个文章只存一次失败记录
     ext_fail = False
     for attachment in attachments:
@@ -152,18 +155,15 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
                 if status:
                     dl_count = 0
                 else:
-                    if code == 400 and dl_count >= 3:
-                        Logger.warning("附件链接异常无法访问！")
-                        mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,
-                                               page_name,
-                                               "附件链接异常无法访问！")
-                        return
-                    elif code == 404 and dl_count >= 2:
-                        Logger.warning("404，附件不存在！")
-                        mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,
-                                               page_name,
-                                               "404，附件不存在！")
-                        return
+                    dl_status = DownloadStatus.get(code)
+                    if dl_status:
+                        if dl_status[0]:
+                            break
+                        else:
+                            Logger.warning(dl_status[1])
+                            mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,
+                                                   page_name, dl_status(1))
+                            return
                     else:
                         Logger.warning("下载未成功，重新开始！")
                     dl_count += 1
@@ -171,6 +171,21 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
                 dl_count += 1
                 Logger.warning("%s [异常]断点下载失败 %s！" % (attachment.url, str(e)))
                 time.sleep(3)
+        if dl_count != 0:
+            # 下载方式二 chromeDriver下载,支持chunked
+            Logger.info("开始chromeDriver下载：%s" % attachment.url)
+            download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, attachment.origin_file_name)
+            downloading_full_path = "%s/%s.crdownload" % (Const.DOWNLOAD_PATH, attachment.origin_file_name)
+            try:
+                tmp_chrome.get(attachment.url)
+                time.sleep(1)
+            except Exception as e:
+                Logger.warning("%s chrome下载失败 %s！" % (attachment.url, str(e)))
+            if file.downloads_done(attachment.origin_file_name) and file.move_file(download_full_path,
+                                                                                   attachment.file_path):
+                dl_count = 0
+            else:
+                file.remove_file(downloading_full_path)
         if dl_count == 0:
             mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
                                  pk_artcl=pk_article,
@@ -179,7 +194,7 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
                                  file_path=attachment.file_path)
             Logger.info("写入文章附件mapping成功！")
         else:
-            Logger.warn("%s 附件下载失败!" % attachment.url)
+            Logger.warning("%s 附件下载失败!" % attachment.url)
             if not ext_fail:
                 mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,
                                        page_name,

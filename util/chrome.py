@@ -37,7 +37,7 @@ class Chrome():
             result = self.chrome.find_element_by_class_name(class_name)
             return result
         except NoSuchElementException:
-            Logger.warn("未找到class[%s]，刷新页面%d次" % (class_name, count))
+            Logger.warning("未找到class[%s]，刷新页面%d次" % (class_name, count))
             count += 1
             if count < 10:
                 self.refresh()
@@ -53,7 +53,7 @@ class Chrome():
                 result = self.chrome.find_element_by_class_name(class_name)
                 return result
             except NoSuchElementException:
-                Logger.warn("未找到class[%s]" % class_name)
+                Logger.warning("未找到class[%s]" % class_name)
         self.refresh()
         time.sleep(10)
         Logger.error("第%d次未找到classes[%s]" % (count, class_names))
@@ -70,7 +70,7 @@ class Chrome():
         else:
             self.refresh()
         if self.page_source().find('503 Service Unavailable') != -1:
-            Logger.warn("503 Service Unavailable, %s" % url)
+            Logger.warning("503 Service Unavailable, %s" % url)
             time.sleep(10)
             self.get(url, count + 1)
 

@@ -56,13 +56,13 @@ def insert_mapping(pk_artcl_file, pk_artcl, file_type_name, file_name, file_path
 # 插入爬取失败记录
 def set_toretry_task(pk_task, pk_webchannel, src_url, title, pub_time, sub_channel_name, errmsg):
     if not check_toretry_task_exist(pk_webchannel, src_url):
-        Logger.warn("插入重试任务 %s！" % title)
+        Logger.warning("插入重试任务 %s！" % title)
         sql = [
             "insert into tb_toretry_task (pk_task, pk_webchannel, src_url, title, pub_time, sub_channel_name,errmsg,"
             "total_times) values ('%s', '%s' ,'%s','%s', '%s' ,'%s','%s',%d)"
             % (pk_task, pk_webchannel, src_url, title, pub_time, sub_channel_name, errmsg, 0)]
     else:
-        Logger.warn("更新重试任务 %s 尝试次数！" % title)
+        Logger.warning("更新重试任务 %s 尝试次数！" % title)
         sql = [
             "update tb_toretry_task set errmsg='%s',total_times=total_times+1 where pk_webchannel = '%s' and src_url ='%s'"
             % (errmsg, pk_webchannel, src_url)]
@@ -189,10 +189,10 @@ def get_channels():
     cur.close()
     conn.close()
     if len(result) == 0:
-        Logger.warn("未找到可用channel！")
+        Logger.warning("未找到可用channel！")
         exit()
     else:
-        Logger.warn("共找到%d条可启动channel！" % len(result))
+        Logger.warning("共找到%d条可启动channel！" % len(result))
     return list(
         map(lambda data: {"pk_org": data[0], "pk_channel": data[1], "web_site_url": data[2], "rulecode": data[3]},
             result))

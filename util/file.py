@@ -130,9 +130,9 @@ def move_file(src_file, dst_file):
 def downloads_done(file_name):
     succ = False
     for i in os.listdir(Const.DOWNLOAD_PATH):
-        if ".crdownload" in i:
+        if file_name + ".crdownload" in i:
             time.sleep(1)
-            downloads_done(file_name)
+            return downloads_done(file_name)
         if file_name in i:
             succ = True
     if succ:
@@ -153,3 +153,10 @@ def replace_local_file(content, file_name, local_path):
         content = content.replace(remote_path, local_path)
         end = content.find(file_name, end + _len)
     return content
+
+
+def remove_file(downloading_file_path):
+    if os.path.isfile(downloading_file_path):
+        os.remove(downloading_file_path)
+    else:
+        print("要删除的文件不存在！")
