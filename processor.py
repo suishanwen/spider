@@ -1,6 +1,7 @@
 import re
 import uuid
 import time
+import traceback
 import selenium.common.exceptions
 from util.yaml import yaml_read, yaml_write_pages
 from conf.config import Const
@@ -104,9 +105,9 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
             mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title,
                                    pub_time, page_name, "正文保存失败！")
     except Exception as e:
-        Logger.info("文章获取异常！%s" % tmp_chrome.current_url())
+        Logger.info("文章获取异常！%s :%s" % (tmp_chrome.current_url(), str(e)))
         mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title, pub_time, page_name,
-                               "文章获取异常！{0}".format(str(e)).replace("'", '"'))
+                               "文章获取异常！{0}".format(traceback.format_exc()).replace("'", '"'))
 
 
 # 获取文章附件列表
