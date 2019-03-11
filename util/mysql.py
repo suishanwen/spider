@@ -56,8 +56,8 @@ def insert_mapping(pk_artcl_file, pk_artcl, file_type_name, file_name, file_path
 
 # 插入爬取失败记录
 def set_toretry_task(pk_task, pk_webchannel, src_url, title, pub_time, sub_channel_name, errmsg):
-    if len(errmsg) > 1024:
-        errmsg = errmsg[0:1024]
+    if len(errmsg) > 5000:
+        errmsg = errmsg[0:5000]
     if not check_toretry_task_exist(pk_webchannel, src_url):
         Logger.warning("插入重试任务 %s！" % title)
         sql = [
