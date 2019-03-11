@@ -1,5 +1,6 @@
 import pymysql
 import time
+import uuid
 from util.yaml import yaml_read
 from conf.config import Const
 from util.logger import Logger
@@ -143,6 +144,20 @@ def check_toretry_task_exist(pk_webchannel, src_url):
     cur.close()
     conn.close()
     return result[0][0] > 0
+
+
+# 获取pk_org
+def get_pk_article(src_url, title):
+    sql = ["select src_url from pubinfo.tb_artcl where src_url = '%s' and title = '%s'" % (src_url, title)]
+    conn = get_connect()
+    cur = conn.cursor()
+    cur.execute(sql[0])
+    result = cur.fetchall()
+    cur.close()
+    conn.close()
+    if len(result) == 0:
+        return str(uuid.uuid4())
+    return result[0][0]
 
 
 # 获取pk_org

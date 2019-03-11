@@ -85,7 +85,7 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
         return
     # 获取正文
     try:
-        pk_article = str(uuid.uuid4())
+        pk_article = mysql.get_pk_article(href, title)
         content = page_info.get_content(tmp_chrome)
         attachments = get_ext(tmp_chrome, page_info, dir_name, page_name)
         # 替换附件路径
