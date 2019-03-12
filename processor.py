@@ -9,6 +9,7 @@ from util.download import py_download
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from model.Attachment import Attachment
 from model.DownloadStatus import DownloadStatus
+from selenium.common.exceptions import NoSuchElementException
 
 
 # 获取所有分页页面
@@ -18,6 +19,9 @@ def get_page(spider, channel):
     time.sleep(1)
     try:
         page_count = spider.get_page_count(_chrome)
+    except NoSuchElementException:
+        page_count = 1
+    try:
         Logger.info("%s下共%d页!" % (channel.channel_name, page_count))
         exist = get_page_articles(_chrome, spider, channel)
         if channel.scrapy_page == 0:
