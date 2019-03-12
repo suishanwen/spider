@@ -86,3 +86,35 @@ from util.file import validate_title
 # attachment_uri = "/ewebeditor/uploadfile/2013/04/20130403171413251.JPG"
 # relate_img = attachment_uri[0:attachment_uri.rfind(".")] + "_s" + "." + "JPG"
 # print(relate_img)
+import time
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
+def ttt(cc):
+    time.sleep(cc)
+    print("over")
+
+
+def pool():
+    task_list = []
+    with ThreadPoolExecutor(2) as executor:
+        # 异常抓取重试任务
+        # 正常抓取
+        for i in range(3):
+            task = executor.submit(ttt, i)
+            task_list.append(task)
+        for task in as_completed(task_list):
+            print("线程[%s]执行完成" % str(task))
+
+
+threading.Thread(target=pool,
+                 args=()).start()
+
+
+while True:
+    time.sleep(1)
+    count = threading.activeCount()
+    print(count)
+    if count == 4:
+        break
