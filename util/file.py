@@ -1,7 +1,8 @@
 import logging
 from urllib3.exceptions import NewConnectionError
 import requests
-import os, re
+import os
+import re
 import shutil
 import time
 from conf.config import Const
@@ -16,7 +17,7 @@ d = os.path.dirname(__file__)
 base_file_path = "%s/file" % os.path.dirname(d)
 html_header = "<html lang=\"zh-cn\"><head><meta charset=\"utf-8\"/></head><body>"
 html_footer = "</body></html>"
-file_suffix = ["png", "pdf", "xls", "xlsx", "doc", "docx", "jpg", "zip", "txt", "wps", "bmp", "ppt", "pptx"]
+file_suffix = ["png", "pdf", "xls", "xlsx", "doc", "docx", "jpg", "zip", "rar", "txt", "wps", "bmp", "ppt", "pptx"]
 
 
 def mkdir(path):
