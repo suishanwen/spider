@@ -1,27 +1,6 @@
-class PageInfo(object):
+class Spider(object):
     def __init__(self):
-        # child init
-        self.section = ""
-        # from yaml
-        self.org_name = ""
-        self.domain = ""
-        self.channel = ""
-        self.pages = []
-        self.max_thread = 1
-        # query
-        self.pk_org = ""
-        self.pk_channel = ""
-
-    def from_dict(self, _dict):
-        for name, value in vars(self).items():
-            if name in _dict:
-                setattr(self, name, _dict[name])
-
-    def set_pk_org(self, pk_org):
-        self.pk_org = pk_org
-
-    def set_pk_channel(self, pk_channel):
-        self.pk_channel = pk_channel
+        self.channels = []
 
     def get_page_count(self, _chrome):
         pass

@@ -1,17 +1,16 @@
-from page.PageInfo import PageInfo
+from spiders.Spider import Spider
 
 
-class Beijing(PageInfo):
+class Beijing(Spider):
 
     def __init__(self):
-        PageInfo.__init__(self)
-        self.section = "beijing"
+        Spider.__init__(self)
 
     def get_page_count(self, _chrome):
-        return int(_chrome.find_class("laypage_last").get_attribute('data-page'))
+        return int(_chrome.find_class("laypage_last").get_attribute('data-spiders'))
 
     def get_sub_page_url(self, page_index, page_url):
-        return "%s#!page=%d" % (page_url, page_index)
+        return "%s#!spiders=%d" % (page_url, page_index)
 
     def get_content_list(self, _chrome):
         return _chrome.find_class("zxgklist").find_elements_by_tag_name("li")

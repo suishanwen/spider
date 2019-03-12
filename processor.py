@@ -2,7 +2,6 @@ import uuid
 import time
 import traceback
 import selenium.common.exceptions
-from util.yaml import yaml_read, yaml_write_pages
 from conf.config import Const
 from util import mysql, chrome, file
 from util.logger import Logger
@@ -13,58 +12,58 @@ from model.DownloadStatus import DownloadStatus
 
 
 # 获取所有分页页面
-def get_page(page_info, page_index, page_name, page_url, page_exec):
+def get_page(spider, channel):
     _chrome = chrome.Chrome()
-    _chrome.get(page_url)
+    _chrome.get(channel.web_site_url)
     time.sleep(1)
-    page_count = page_info.get_page_count(_chrome)
-    Logger.info("%s下共%d页!" % (page_name, page_count))
-    exist = get_page_articles(_chrome, page_info, page_name)
-    if page_exec == 0:
-        page_info.pages[page_index][2] = 1
-        yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
-    _chrome.quit()
-    for sub_page_index in range(2, page_count + 1):
-        # 断页续抓
-        if sub_page_index <= page_exec and exist:
-            continue
-        _chrome = chrome.Chrome()
-        _chrome.get(page_info.get_sub_page_url(sub_page_index, page_url))
-        time.sleep(1)
-        exist = get_page_articles(_chrome, page_info, page_name)
+    try:
+        page_count = spider.get_page_count(_chrome)
+        Logger.info("%s下共%d页!" % (channel.channel_name, page_count))
+        exist = get_page_articles(_chrome, spider, channel)
+        if channel.scrapy_page == 0:
+            mysql.update_scrapy_page(channel.pk_channel, 1)
         _chrome.quit()
-        # 增量抓取 并 连续3页出现已抓取 = 抓取完毕
-        if exist and (sub_page_index + page_exec) > page_count + 3:
-            Logger.info("增量抓取并连续3页出现已抓取,抓取完毕")
-            page_info.pages[page_index][2] = page_count
-            yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
-            break
-        page_info.pages[page_index][2] = sub_page_index
-        yaml_write_pages(Const.GOV_YAML, page_info.section, page_info.pages)
+        for sub_page_index in range(2, page_count + 1):
+            # 断页续抓
+            if sub_page_index <= channel.scrapy_page and exist:
+                continue
+            _chrome = chrome.Chrome()
+            _chrome.get(spider.get_sub_page_url(sub_page_index, channel.web_site_url))
+            time.sleep(1)
+            exist = get_page_articles(_chrome, spider, channel)
+            _chrome.quit()
+            # 增量抓取 并 连续3页出现已抓取 = 抓取完毕
+            if exist and (sub_page_index + channel.scrapy_page) > page_count + 3:
+                Logger.info("增量抓取并连续3页出现已抓取,抓取完毕")
+                mysql.update_scrapy_page(channel.pk_channel, page_count)
+                break
+            mysql.update_scrapy_page(channel.pk_channel, sub_page_index)
+    except Exception as e:
+        Logger.error("未处理的异常：%s \n%s" % (str(e), traceback.format_exc()))
 
 
 # 获取分页下文章
-def get_page_articles(_chrome, page_info, page_name):
-    content_list = page_info.get_content_list(_chrome)
+def get_page_articles(_chrome, spider, channel):
+    content_list = spider.get_content_list(_chrome)
     tmp_chrome = chrome.Chrome()
     # 当前页是否存在已抓取
     exist = False
     for i in range(len(content_list)):
         # 获取时间_标题、原始链接、发布时间
-        title, href, pub_time = page_info.get_content_info(_chrome, content_list[i])
+        title, href, pub_time = spider.get_content_info(_chrome, content_list[i])
         # 检查是否已爬取
         if mysql.check_exist(title, href):
             Logger.info("%s(%s)已抓取,跳过" % (title, href))
             exist = True
             continue
-        get_article(tmp_chrome, title, href, pub_time, page_info, page_name)
+        get_article(tmp_chrome, title, href, pub_time, spider, channel)
     Logger.info("当前页 %s 抓取完成 " % (_chrome.current_url()))
     tmp_chrome.quit()
     return exist
 
 
 # 获取文章
-def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
+def get_article(tmp_chrome, title, href, pub_time, spider, channel):
     dir_name = file.validate_title(
         title)
     Logger.info("requsts to : %s " % dir_name)
@@ -72,58 +71,56 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
     tmp_chrome.get(href)
     time.sleep(1)
     # 检查是否正常打开页面
-    code = page_info.check_content_status(tmp_chrome)
+    code = spider.check_content_status(tmp_chrome)
     if code == 404:
         Logger.info("404，文章不存在，跳过！")
-        mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title, pub_time, page_name,
+        mysql.set_toretry_task(str(uuid.uuid4()), channel.pk_channel, href, title, pub_time,
                                "404，文章不存在，跳过！")
         return
     elif code == 403:
         Logger.info("403，文章无权限查看，跳过！")
-        mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title, pub_time, page_name,
+        mysql.set_toretry_task(str(uuid.uuid4()), channel.pk_channel, href, title, pub_time,
                                "403，文章无权限查看，跳过！")
         return
     elif code == 503:
         Logger.info("503,Service Unavailable，重试！")
-        get_article(tmp_chrome, title, href, pub_time, page_info, page_name)
+        get_article(tmp_chrome, title, href, pub_time, spider, channel)
         return
     # 获取正文
     try:
         pk_article = mysql.get_pk_article(href, title)
-        content = page_info.get_content(tmp_chrome)
-        attachments = get_ext(tmp_chrome, page_info, dir_name, page_name)
+        content = spider.get_content(tmp_chrome)
+        attachments = get_ext(tmp_chrome, spider, channel, dir_name)
         # 替换附件路径
         for attachment in attachments:
             content = file.replace_local_file(content, str(attachment.origin_file_name), attachment.local_path)
-            content = page_info.replace_ext_url(content, attachment)
-        full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
+            content = spider.replace_ext_url(content, attachment)
+        full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, channel.org_name, channel.channel_name, dir_name)
         if file.write_to_file(full_path, content):
             Logger.info("摘取正文，保存页面成功！")
             mysql.insert_html_record(pk_artcl=pk_article,
-                                     pk_org=page_info.pk_org,
-                                     pk_channel=page_info.pk_channel,
+                                     pk_org=channel.pk_org,
+                                     pk_channel=channel.pk_channel,
                                      title=title,
                                      src_url=href,
                                      path=full_path,
                                      pub_time=pub_time)
             Logger.info("写入文章数据成功！")
-            download_attachments(attachments, page_info.pk_channel, pk_article, href, title, pub_time, page_name,
-                                 tmp_chrome)
-
+            download_attachments(attachments, channel.pk_channel, pk_article, href, title, pub_time, tmp_chrome)
         else:
-            mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title,
-                                   pub_time, page_name, "正文保存失败！")
+            mysql.set_toretry_task(str(uuid.uuid4()), channel.pk_channel, href, title,
+                                   pub_time, "正文保存失败！")
     except Exception as e:
         Logger.info("文章获取异常！%s :%s" % (tmp_chrome.current_url(), str(e)))
-        mysql.set_toretry_task(str(uuid.uuid4()), page_info.pk_channel, href, title, pub_time, page_name,
+        mysql.set_toretry_task(str(uuid.uuid4()), channel.pk_channel, href, title, pub_time,
                                "文章获取异常！{0}".format(traceback.format_exc()).replace("'", '"'))
 
 
 # 获取文章附件列表
-def get_ext(tmp_chrome, page_info, dir_name, page_name):
+def get_ext(tmp_chrome, spider, channel, dir_name):
     ext_list = []
     try:
-        ext_list = page_info.get_ext_list(tmp_chrome)
+        ext_list = spider.get_ext_list(tmp_chrome)
     except selenium.common.exceptions.NoSuchElementException:
         Logger.info("未找到附件!")
     attachments = []
@@ -138,15 +135,14 @@ def get_ext(tmp_chrome, page_info, dir_name, page_name):
             if title.find('.%s' % extension_name) != -1:
                 title = title.replace('.%s' % extension_name, "")
             file_name = "%s.%s" % (title, extension_name)
-            path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
+            path = '%s/%s/%s/%s' % (Const.BASE_FILE_PATH, channel.org_name, channel.channel_name, dir_name)
             full_path = "%s/%s" % (path, origin_file_name)
             local_ext_href = "." + full_path.replace(path, "")
             attachments.append(Attachment(href, origin_file_name, file_name, extension_name, full_path, local_ext_href))
     return attachments
 
 
-def download_attachments(attachments, pk_channel, pk_article, article_url, article_title, pub_time, page_name,
-                         tmp_chrome):
+def download_attachments(attachments, pk_channel, pk_article, article_url, article_title, pub_time, tmp_chrome):
     # 标识是否失败过、一个文章只存一次失败记录
     ext_fail = False
     for attachment in attachments:
@@ -166,7 +162,7 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
                         else:
                             Logger.warning(dl_status[1])
                             mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,
-                                                   page_name, dl_status(1))
+                                                   dl_status(1))
                             return
                     else:
                         Logger.warning("下载未成功，重新开始！")
@@ -201,55 +197,45 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
             Logger.warning("%s 附件下载失败!" % attachment.url)
             if not ext_fail:
                 mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,
-                                       page_name,
                                        "附件下载失败！")
                 ext_fail = True
 
 
 # 异常抓取重试任务
-def retry_failed(page_info):
+def retry_failed(spider, channel):
     Logger.info("开始重试任务...")
-    retry_list = mysql.query_toretry_task(page_info.pk_channel)
+    retry_list = mysql.query_toretry_task(channel.pk_channel)
     _chrome = chrome.Chrome()
     for retry_info in retry_list:
-        get_article(_chrome, retry_info["title"], retry_info["src_url"], retry_info["pub_time"], page_info,
-                    retry_info["sub_channel_name"])
+        get_article(_chrome, retry_info["title"], retry_info["src_url"], retry_info["pub_time"], spider, channel)
         # 如果任务未失败（retry_info未增加）,删除任务
-        mysql.delete_toretry_task(page_info.pk_channel, retry_info["src_url"], retry_info["total_times"])
+        mysql.delete_toretry_task(channel.pk_channel, retry_info["src_url"], retry_info["total_times"])
     # 停止重试超过5次的任务
-    mysql.stop_toretry_task(page_info.pk_channel)
+    mysql.stop_toretry_task(channel.pk_channel)
     _chrome.quit()
     Logger.info("重试任务完成")
 
 
 # 线程池启动抓取
-def startup(page_info):
-    Logger.info("开始多线程[%d]顺序抓取..." % page_info.max_thread)
+def startup(spider):
+    max_thread = len(spider.channels)
+    if max_thread > 3:
+        max_thread = 3
+    Logger.info("开始多线程[%d]顺序抓取..." % max_thread)
     task_list = []
-    with ThreadPoolExecutor(page_info.max_thread) as executor:
-        # 异常抓取重试任务
-        task = executor.submit(retry_failed, page_info)
-        task_list.append(task)
-        # 正常抓取
-        for page_index in range(len(page_info.pages)):
-            page = page_info.pages[page_index]
-            page_name = page[0]
-            page_url = page_info.domain + page[1]
-            try:
-                page_exec = page[2]
-            except IndexError:
-                page_exec = 0
-            task = executor.submit(get_page, page_info, page_index, page_name, page_url, page_exec)
+    with ThreadPoolExecutor(max_thread) as executor:
+        for channel in spider.channels:
+            # 异常抓取重试任务
+            task = executor.submit(retry_failed, spider, channel)
+            task_list.append(task)
+            # 正常抓取
+            task = executor.submit(get_page, spider, channel)
             task_list.append(task)
         for task in as_completed(task_list):
             Logger.info("线程[%s]执行完成" % str(task))
 
 
-def __main__(page_info, pk_org, pk_channel):
-    Logger.info("~channel:%s 启动~" % pk_channel)
-    page_info.from_dict(yaml_read(Const.GOV_YAML, ("gov", page_info.section)))
-    page_info.pk_org = pk_org
-    page_info.pk_channel = pk_channel
-    Logger.info("查询机构信息成功，开始抓取数据...")
-    startup(page_info)
-    Logger.info("channel:%s执行完成,退出!" % pk_channel)
+def __main__(spider):
+    Logger.info("%s 启动~" % str(spider))
+    startup(spider)
+    Logger.info("%s 执行完成,退出!" % str(spider))

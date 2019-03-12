@@ -4,8 +4,8 @@ import threading
 
 from util import mysql
 from util.logger import Logger
-from page.NhcPublic import NhcPublic
-from page.NhcSt import NhcSt
+from model.Spiders import Spiders
+from model.Channel import Channel
 
 if __name__ == '__main__':
     while True:
@@ -20,15 +20,15 @@ if __name__ == '__main__':
             channels = mysql.get_channels()
         except Exception as e:
             Logger.error("查询channels失败,%s", str(e))
-        for channel in channels:
-            rule_code = channel["rulecode"]
-            _args = ""
-            if rule_code == "NhcSt":
-                _args = NhcSt()
-            elif rule_code == "NhcPublic":
-                _args = NhcPublic()
-            if _args:
-                threading.Thread(target=processor.__main__,
-                                 args=(_args, channel["pk_org"], channel["pk_channel"],)).start()
+        for spider_name in Spiders:
+            spider = Spiders.get(spider_name)
+            spider.channels = []
+            for channel in channels:
+                _channel = Channel()
+                _channel.from_dict(channel)
+                if spider_name == _channel.spider:
+                    spider.channels.append(_channel)
+            if len(spider.channels) > 0:
+                threading.Thread(target=processor.__main__, args=(spider,)).start()
         Logger.info("所有channel启动完成，休眠12小时...")
         time.sleep(3600 * 12)

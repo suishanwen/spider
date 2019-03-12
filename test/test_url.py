@@ -2,7 +2,7 @@ from util.logger import Logger
 from util import file, chrome
 from model.Attachment import Attachment
 from selenium.common.exceptions import NoSuchElementException
-from page.NhcSt import NhcSt
+from spiders.NhcSt import NhcSt
 from util.download import py_download
 from conf.config import Const
 from model.DownloadStatus import DownloadStatus

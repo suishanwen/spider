@@ -1,12 +1,11 @@
-from page.PageInfo import PageInfo
+from spiders.Spider import Spider
 from util import file
 
 
-class NhcPublic(PageInfo):
+class NhcPublic(Spider):
 
     def __init__(self):
-        PageInfo.__init__(self)
-        self.section = "nhcPublic"
+        Spider.__init__(self)
 
     def get_page_count(self, _chrome):
         text = _chrome.chrome.find_element_by_id("TDLASTPAGE") \

@@ -55,15 +55,15 @@ def insert_mapping(pk_artcl_file, pk_artcl, file_type_name, file_name, file_path
 
 
 # 插入爬取失败记录
-def set_toretry_task(pk_task, pk_webchannel, src_url, title, pub_time, sub_channel_name, errmsg):
+def set_toretry_task(pk_task, pk_webchannel, src_url, title, pub_time, errmsg):
     if len(errmsg) > 5000:
         errmsg = errmsg[0:5000]
     if not check_toretry_task_exist(pk_webchannel, src_url):
         Logger.warning("插入重试任务 %s！" % title)
         sql = [
             "insert into tb_toretry_task (pk_task, pk_webchannel, src_url, title, pub_time, sub_channel_name,errmsg,"
-            "total_times) values ('%s', '%s' ,'%s','%s', '%s' ,'%s','%s',%d)"
-            % (pk_task, pk_webchannel, src_url, title, pub_time, sub_channel_name, errmsg, 0)]
+            "total_times) values ('%s', '%s' ,'%s','%s', '%s' ,'%s',%d)"
+            % (pk_task, pk_webchannel, src_url, title, pub_time, errmsg, 0)]
     else:
         Logger.warning("更新重试任务 %s 尝试次数！" % title)
         sql = [
@@ -74,7 +74,7 @@ def set_toretry_task(pk_task, pk_webchannel, src_url, title, pub_time, sub_chann
 
 def query_toretry_task(pk_webchannel):
     sql = [
-        "select  src_url ,title ,pub_time ,sub_channel_name,total_times from tb_toretry_task where pk_webchannel = '%s' and is_stop=0 " % (
+        "select  src_url ,title ,pub_time,total_times from tb_toretry_task where pk_webchannel = '%s' and is_stop=0 " % (
             pk_webchannel)]
     conn = get_connect()
     cur = conn.cursor()
@@ -87,8 +87,8 @@ def query_toretry_task(pk_webchannel):
     else:
         Logger.info("当前channel共找到%d条可重试的失败记录！" % len(result))
     return list(
-        map(lambda data: {"src_url": data[0], "title": data[1], "pub_time": str(data[2]), "sub_channel_name": data[3],
-                          "total_times": data[4]}, result))
+        map(lambda data: {"src_url": data[0], "title": data[1], "pub_time": str(data[2]), "total_times": data[3]},
+            result))
 
 
 # 删除爬取失败记录
@@ -162,43 +162,11 @@ def get_pk_article(src_url, title):
     return result[0][0]
 
 
-# 获取pk_org
-def get_pk_org(org_name):
-    sql = ["select pk_org from mdm_orginazation where org_name = '%s'" % (org_name)]
-    conn = get_connect()
-    cur = conn.cursor()
-    cur.execute(sql[0])
-    result = cur.fetchall()
-    cur.close()
-    conn.close()
-    if len(result) == 0:
-        Logger.error("未找到Org:%s", org_name)
-        exit()
-    return result[0][0]
-
-
-# 获取pk_channel
-def get_pk_channel(pk_org, web_site_url):
-    sql = [
-        "select pk_channel from mdm_webchannel where pk_org = '%s' and web_site_url='%s'" % (
-            pk_org, web_site_url)]
-    conn = get_connect()
-    cur = conn.cursor()
-    cur.execute(sql[0])
-    result = cur.fetchall()
-    cur.close()
-    conn.close()
-    if len(result) == 0:
-        Logger.error("未找到Channel,pk_org:%s ,web_site_url:%s" % (pk_org, web_site_url))
-        exit()
-    return result[0][0]
-
-
 # 获取channel
 def get_channels():
     sql = [
-        "select pk_org,pk_channel,web_site_url,rulecode from mdm_webchannel where rulecode is not null"
-        " and rulecode <> ''"]
+        "select mw.pk_org,mo.org_name,mw.pk_channel,mw.channel_name,mw.web_site_url,mw.spider,mw.scrapy_page from mdm_webchannel mw"
+        " inner join mdm_orginazation mo on mw.pk_org = mo.pk_org where mw.spider is not null and mw.spider <> ''"]
     conn = get_connect()
     cur = conn.cursor()
     cur.execute(sql[0])
@@ -211,5 +179,14 @@ def get_channels():
     else:
         Logger.warning("共找到%d条可启动channel！" % len(result))
     return list(
-        map(lambda data: {"pk_org": data[0], "pk_channel": data[1], "web_site_url": data[2], "rulecode": data[3]},
+        map(lambda data: {"pk_org": data[0], "org_name": data[1], "pk_channel": data[2], "channel_name": data[3],
+                          "web_site_url": data[4], "spider": data[5], "scrapy_page": data[6]},
             result))
+
+
+# 更新频道爬取页码
+def update_scrapy_page(pk_channel, scrapy_page):
+    sql = [
+        "update mdm_webchannel set scrapy_page=%d where pk_channel = '%s'"
+        % (scrapy_page, pk_channel)]
+    return execute_sql(sql[0])
