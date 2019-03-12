@@ -32,7 +32,7 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
     attachments = get_ext(tmp_chrome, page_info, dir_name, page_name)
     # 替换附件路径
     for attachment in attachments:
-        content = file.replace_local_file(content, str(attachment.file_name), attachment.local_path)
+        content = file.replace_local_file(content, str(attachment.origin_file_name), attachment.local_path)
         content = page_info.replace_ext_url(content, attachment)
     full_path = '%s/index.html' % (os.path.abspath(".") + "/test")
     if file.write_to_file(full_path, content):
@@ -113,6 +113,6 @@ def download_attachments(attachments, tmp_chrome):
 
 
 _chrome = chrome.Chrome()
-url = "http://www.nhc.gov.cn/fzs/s7852d/201711/0f4552f60a804d829b5b4a8429b72f33.shtml"
+url = "http://www.nhc.gov.cn/bgt/2016dseqm/201804/09c7f62d1904423686769b6cf43808c9.shtml"
 get_article(_chrome, "测试页面", url, "222", NhcSt(), "333")
 _chrome.quit()

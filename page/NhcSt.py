@@ -70,7 +70,7 @@ class NhcSt(PageInfo):
         return ext_a_list
 
     def replace_ext_url(self, content, attachment):
-        return file.replace_local_file(content, attachment.file_name[
-                                                0:attachment.file_name.rfind(
+        return file.replace_local_file(content, attachment.origin_file_name[
+                                                0:attachment.origin_file_name.rfind(
                                                     ".")] + "_s" + "." + attachment.file_type_name,
                                        attachment.local_path)
