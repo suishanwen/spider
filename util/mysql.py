@@ -61,8 +61,8 @@ def set_toretry_task(pk_task, pk_webchannel, src_url, title, pub_time, errmsg):
     if not check_toretry_task_exist(pk_webchannel, src_url):
         Logger.warning("插入重试任务 %s！" % title)
         sql = [
-            "insert into tb_toretry_task (pk_task, pk_webchannel, src_url, title, pub_time, sub_channel_name,errmsg,"
-            "total_times) values ('%s', '%s' ,'%s','%s', '%s' ,'%s',%d)"
+            "insert into tb_toretry_task (pk_task, pk_webchannel, src_url, title, pub_time,errmsg,"
+            "total_times) values ('%s', '%s' ,'%s','%s','%s', '%s',%d)"
             % (pk_task, pk_webchannel, src_url, title, pub_time, errmsg, 0)]
     else:
         Logger.warning("更新重试任务 %s 尝试次数！" % title)
