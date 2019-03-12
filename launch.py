@@ -23,5 +23,5 @@ if __name__ == '__main__':
                 _args = NhcPublic()
             if _args:
                 processor.__main__(_args, channel["pk_org"], channel["pk_channel"])
-            Logger.info("所有channel执行完成，休眠12小时...")
+            Logger.info("所有channel启动完成，休眠12小时...")
         time.sleep(3600 * 12)
