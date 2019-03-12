@@ -177,6 +177,7 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
             download_full_path = "%s/%s" % (Const.DOWNLOAD_PATH, attachment.origin_file_name)
             downloading_full_path = "%s/%s.crdownload" % (Const.DOWNLOAD_PATH, attachment.origin_file_name)
             try:
+                file.remove_file(downloading_full_path)
                 tmp_chrome.get(attachment.url)
                 time.sleep(1)
                 if file.downloads_done(attachment.origin_file_name) and file.move_file(download_full_path,
