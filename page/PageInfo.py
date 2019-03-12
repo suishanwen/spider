@@ -36,7 +36,15 @@ class PageInfo(object):
         pass
 
     def check_content_status(self, _chrome):
-        return 200
+        content = _chrome.page_source()
+        code = 200
+        if content.find('<h1>Not Found</h1>') != -1:
+            code = 404
+        elif content.find('<h1>Forbidden</h1>') != -1:
+            code = 403
+        elif content.find('503 Service Unavailable') != -1:
+            code = 503
+        return code
 
     def get_content(self, _chrome):
         pass

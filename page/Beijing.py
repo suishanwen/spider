@@ -23,15 +23,6 @@ class Beijing(PageInfo):
         href = a.get_attribute("href")
         return title, href, public_date
 
-    def check_content_status(self, _chrome):
-        content = _chrome.page_source()
-        code = 200
-        if content.find('<h1>Not Found</h1>') != -1:
-            code = 404
-        elif content.find('<h1>Forbidden</h1>') != -1:
-            code = 403
-        return code
-
     def get_content(self, _chrome):
         return _chrome.find_class("content_con").get_attribute('innerHTML')
 

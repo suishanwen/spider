@@ -30,15 +30,6 @@ class NhcPublic(PageInfo):
                      _chrome.chrome.find_element_by_id("staticUrl_" + manuscript_id).get_attribute('value')
         return title, static_url, public_date
 
-    def check_content_status(self, _chrome):
-        content = _chrome.page_source()
-        code = 200
-        if content.find('<h1>Not Found</h1>') != -1:
-            code = 404
-        elif content.find('<h1>Forbidden</h1>') != -1:
-            code = 403
-        return code
-
     def get_content(self, _chrome):
         return _chrome.multi_find_class(["content", "mb50", "wrap", "w1100"]).get_attribute('innerHTML')
 
