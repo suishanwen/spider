@@ -90,7 +90,7 @@ def get_article(tmp_chrome, title, href, pub_time, page_info, page_name):
         attachments = get_ext(tmp_chrome, page_info, dir_name, page_name)
         # 替换附件路径
         for attachment in attachments:
-            content = file.replace_local_file(content, str(attachment.file_name), attachment.local_path)
+            content = file.replace_local_file(content, str(attachment.origin_file_name), attachment.local_path)
             content = page_info.replace_ext_url(content, attachment)
         full_path = '%s/%s/%s/%s/index.html' % (Const.BASE_FILE_PATH, page_info.org_name, page_name, dir_name)
         if file.write_to_file(full_path, content):
