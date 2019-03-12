@@ -148,9 +148,9 @@ def check_toretry_task_exist(pk_webchannel, src_url):
     return result[0][0] > 0
 
 
-# 获取pk_org
+# 获取pk_artcl
 def get_pk_article(src_url, title):
-    sql = ["select src_url from tb_artcl where src_url = '%s' and title = '%s'" % (src_url, title)]
+    sql = ["select pk_artcl from tb_artcl where src_url = '%s' and title = '%s'" % (src_url, title)]
     conn = get_connect()
     cur = conn.cursor()
     cur.execute(sql[0])
