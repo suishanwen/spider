@@ -166,7 +166,7 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
                         else:
                             Logger.warning(dl_status[1])
                             mysql.set_toretry_task(str(uuid.uuid4()), pk_channel, article_url, article_title, pub_time,
-                                                   dl_status(1))
+                                                   dl_status[1])
                             return
                     else:
                         Logger.warning("下载未成功，重新开始！")
