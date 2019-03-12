@@ -179,12 +179,11 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
             try:
                 tmp_chrome.get(attachment.url)
                 time.sleep(1)
+                if file.downloads_done(attachment.origin_file_name) and file.move_file(download_full_path,
+                                                                                       attachment.file_path):
+                    dl_count = 0
             except Exception as e:
                 Logger.warning("%s chrome下载失败 %s！" % (attachment.url, str(e)))
-            if file.downloads_done(attachment.origin_file_name) and file.move_file(download_full_path,
-                                                                                   attachment.file_path):
-                dl_count = 0
-            else:
                 file.remove_file(downloading_full_path)
         if dl_count == 0:
             mysql.insert_mapping(pk_artcl_file=str(uuid.uuid4()),
