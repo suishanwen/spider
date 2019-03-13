@@ -13,8 +13,9 @@ if __name__ == '__main__':
         active_thread = threading.activeCount()
         # active_thread 程序默认为4
         if active_thread > 4:
-            time.sleep(3600)
             Logger.info("还有线程未抓取完成，继续休眠1小时...")
+            time.sleep(3600)
+            continue
         channels = []
         try:
             channels = mysql.get_channels()
