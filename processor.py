@@ -208,16 +208,19 @@ def download_attachments(attachments, pk_channel, pk_article, article_url, artic
 # 异常抓取重试任务
 def retry_failed(spider, channel):
     Logger.info("开始重试任务...")
-    retry_list = mysql.query_toretry_task(channel.pk_channel)
-    _chrome = chrome.Chrome()
-    for retry_info in retry_list:
-        get_article(_chrome, retry_info["title"], retry_info["src_url"], retry_info["pub_time"], spider, channel)
-        # 如果任务未失败（retry_info未增加）,删除任务
-        mysql.delete_toretry_task(channel.pk_channel, retry_info["src_url"], retry_info["total_times"])
-    # 停止重试超过5次的任务
-    mysql.stop_toretry_task(channel.pk_channel)
-    _chrome.quit()
-    Logger.info("重试任务完成")
+    try:
+        retry_list = mysql.query_toretry_task(channel.pk_channel)
+        _chrome = chrome.Chrome()
+        for retry_info in retry_list:
+            get_article(_chrome, retry_info["title"], retry_info["src_url"], retry_info["pub_time"], spider, channel)
+            # 如果任务未失败（retry_info未增加）,删除任务
+            mysql.delete_toretry_task(channel.pk_channel, retry_info["src_url"], retry_info["total_times"])
+        # 停止重试超过5次的任务
+        mysql.stop_toretry_task(channel.pk_channel)
+        _chrome.quit()
+        Logger.info("重试任务完成")
+    except Exception as e:
+        Logger.error("重试任务异常：{} \n {}".format(str(e), traceback.format_exc()))
 
 
 # 线程池启动抓取
