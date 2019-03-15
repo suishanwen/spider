@@ -226,12 +226,9 @@ def retry_failed(spider, channel):
 # 线程池启动抓取
 def startup(spider):
     try:
-        max_thread = len(spider.channels)
-        if max_thread > 3:
-            max_thread = 3
-        Logger.info("开始多线程[%d]顺序抓取..." % max_thread)
+        Logger.info("开始[%d]线程顺序抓取..." % spider.max_thread)
         task_list = []
-        with ThreadPoolExecutor(max_thread) as executor:
+        with ThreadPoolExecutor(spider.max_thread) as executor:
             for channel in spider.channels:
                 # 异常抓取重试任务
                 task = executor.submit(retry_failed, spider, channel)

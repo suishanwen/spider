@@ -7,6 +7,7 @@ class NhcSt(Spider):
 
     def __init__(self):
         Spider.__init__(self)
+        self.max_thread = 3
 
     def get_page_count(self, _chrome):
         text = _chrome.find_class("pagination_index_last").text
