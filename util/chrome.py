@@ -76,7 +76,7 @@ class Chrome():
 
     def refresh(self):
         self.clear_cookies()
-        Logger.info("刷新")
+        Logger.info("刷新:%s" % self.chrome.current_url)
         time.sleep(0.5)
         self.chrome.refresh()
         time.sleep(0.5)
