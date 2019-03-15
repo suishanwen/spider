@@ -225,21 +225,24 @@ def retry_failed(spider, channel):
 
 # 线程池启动抓取
 def startup(spider):
-    max_thread = len(spider.channels)
-    if max_thread > 3:
-        max_thread = 3
-    Logger.info("开始多线程[%d]顺序抓取..." % max_thread)
-    task_list = []
-    with ThreadPoolExecutor(max_thread) as executor:
-        for channel in spider.channels:
-            # 异常抓取重试任务
-            task = executor.submit(retry_failed, spider, channel)
-            task_list.append(task)
-            # 正常抓取
-            task = executor.submit(get_page, spider, channel)
-            task_list.append(task)
-        for task in as_completed(task_list):
-            Logger.info("线程[%s]执行完成" % str(task))
+    try:
+        max_thread = len(spider.channels)
+        if max_thread > 3:
+            max_thread = 3
+        Logger.info("开始多线程[%d]顺序抓取..." % max_thread)
+        task_list = []
+        with ThreadPoolExecutor(max_thread) as executor:
+            for channel in spider.channels:
+                # 异常抓取重试任务
+                task = executor.submit(retry_failed, spider, channel)
+                task_list.append(task)
+                # 正常抓取
+                task = executor.submit(get_page, spider, channel)
+                task_list.append(task)
+            for task in as_completed(task_list):
+                Logger.info("线程[%s]执行完成" % str(task))
+    except Exception as e:
+        Logger.error("线程池启动抓取异常：{} \n {}".format(str(e), traceback.format_exc()))
 
 
 def __main__(spider):
