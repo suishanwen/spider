@@ -9,7 +9,6 @@ from util.download import py_download
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from model.Attachment import Attachment
 from model.DownloadStatus import DownloadStatus
-from selenium.common.exceptions import NoSuchElementException
 
 
 # 获取所有分页页面
@@ -17,10 +16,7 @@ def get_page(spider, channel):
     _chrome = chrome.Chrome()
     _chrome.get(channel.web_site_url)
     time.sleep(1)
-    try:
-        page_count = spider.get_page_count(_chrome)
-    except NoSuchElementException:
-        page_count = 1
+    page_count = spider.get_page_count(_chrome)
     try:
         Logger.info("%s下共%d页!" % (channel.channel_name, page_count))
         exist = get_page_articles(_chrome, spider, channel)
@@ -217,14 +213,16 @@ def retry_failed(spider, channel):
     Logger.info("开始重试任务...")
     try:
         retry_list = mysql.query_toretry_task(channel.pk_channel)
-        _chrome = chrome.Chrome()
-        for retry_info in retry_list:
-            get_article(_chrome, retry_info["title"], retry_info["src_url"], retry_info["pub_time"], spider, channel)
-            # 如果任务未失败（retry_info未增加）,删除任务
-            mysql.delete_toretry_task(channel.pk_channel, retry_info["src_url"], retry_info["total_times"])
-        # 停止重试超过5次的任务
-        mysql.stop_toretry_task(channel.pk_channel)
-        _chrome.quit()
+        if len(retry_list) > 0:
+            _chrome = chrome.Chrome()
+            for retry_info in retry_list:
+                get_article(_chrome, retry_info["title"], retry_info["src_url"], retry_info["pub_time"], spider,
+                            channel)
+                # 如果任务未失败（retry_info未增加）,删除任务
+                mysql.delete_toretry_task(channel.pk_channel, retry_info["src_url"], retry_info["total_times"])
+            # 停止重试超过5次的任务
+            mysql.stop_toretry_task(channel.pk_channel)
+            _chrome.quit()
         Logger.info("重试任务完成")
     except Exception as e:
         Logger.error("重试任务异常：{} \n {}".format(str(e), traceback.format_exc()))

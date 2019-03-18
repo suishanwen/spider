@@ -1,4 +1,5 @@
 from spiders.Spider import Spider
+from selenium.common.exceptions import NoSuchElementException
 
 
 class Beijing(Spider):
@@ -21,7 +22,12 @@ class Beijing(Spider):
         return code
 
     def get_page_count(self, _chrome):
-        return int(_chrome.find_class("laypage_last").get_attribute('data-spiders'))
+        try:
+            text = _chrome.find_class("laypage_last")
+            page_count = int(text.get_attribute('data-page'))
+        except NoSuchElementException:
+            page_count = 1
+        return page_count
 
     def get_sub_page_url(self, page_index, page_url):
         return "%s#!page=%d" % (page_url, page_index)
