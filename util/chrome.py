@@ -39,13 +39,13 @@ class Chrome():
         except NoSuchElementException:
             Logger.warning("未找到class[%s]，刷新页面%d次" % (class_name, count))
             count += 1
-            if count < 10:
+            if count < 3:
                 self.refresh()
                 time.sleep(10)
                 return self.find_class(class_name, count)
             else:
-                Logger.error("连续刷新页面%d次未找到class[%s]" % (count, class_name))
-                raise NoSuchElementException("连续刷新页面%d次未找到class[%s]" % (count, class_name))
+                Logger.error("%s连续刷新页面%d次未找到class[%s]" % (self.current_url(), count, class_name))
+                raise NoSuchElementException("%s连续刷新页面%d次未找到class[%s]" % (self.current_url(), count, class_name))
 
     def multi_find_class(self, class_names, count=1):
         for class_name in class_names:
@@ -57,9 +57,9 @@ class Chrome():
         self.refresh()
         time.sleep(10)
         Logger.error("第%d次未找到classes[%s]" % (count, class_names))
-        if count == 10:
-            Logger.error("连续刷新页面%d次未找到classes[%s]" % (count, class_names))
-            raise NoSuchElementException("连续刷新页面%d次未找到classes[%s]" % (count, class_names))
+        if count == 3:
+            Logger.error("%s连续刷新页面%d次未找到classes[%s]" % (self.current_url(), count, class_names))
+            raise NoSuchElementException("%s连续刷新页面%d次未找到classes[%s]" % (self.current_url(), count, class_names))
         count += 1
         return self.multi_find_class(class_names, count)
 
