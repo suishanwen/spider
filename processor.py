@@ -90,6 +90,11 @@ def get_article(tmp_chrome, title, href, pub_time, spider, channel):
         Logger.info("503,Service Unavailable，重试！")
         get_article(tmp_chrome, title, href, pub_time, spider, channel)
         return
+    elif code == 999:
+        Logger.info("当前IP被网站封禁，暂停5分钟后继续！")
+        time.sleep(300)
+        get_article(tmp_chrome, title, href, pub_time, spider, channel)
+        return
     # 获取正文
     try:
         pk_article = mysql.get_pk_article(href, title)
@@ -110,7 +115,8 @@ def get_article(tmp_chrome, title, href, pub_time, spider, channel):
                                      path=full_path,
                                      pub_time=pub_time)
             Logger.info("写入文章数据成功！")
-            download_attachments(attachments, channel.pk_channel, pk_article, href, title, pub_time, tmp_chrome)
+            download_attachments(attachments, channel.pk_channel, pk_article, href, title, pub_time, tmp_chrome,
+                                 spider.breakpoint_download)
         else:
             mysql.set_toretry_task(str(uuid.uuid4()), channel.pk_channel, href, title,
                                    pub_time, "正文保存失败！")
@@ -146,13 +152,14 @@ def get_ext(tmp_chrome, spider, channel, dir_name):
     return attachments
 
 
-def download_attachments(attachments, pk_channel, pk_article, article_url, article_title, pub_time, tmp_chrome):
+def download_attachments(attachments, pk_channel, pk_article, article_url, article_title, pub_time, tmp_chrome,
+                         breakpoint_download):
     # 标识是否失败过、一个文章只存一次失败记录
     ext_fail = False
     for attachment in attachments:
         dl_count = 1
         # 下载方式一 读取Content-Lenth 断点下载
-        while 1 <= dl_count <= 10:
+        while breakpoint_download and 1 <= dl_count <= 10:
             try:
                 Logger.warning("%s->%s 开始第%d次断点下载！" % (attachment.url, attachment.file_path, dl_count))
                 status, code = py_download(attachment.url, attachment.file_path)

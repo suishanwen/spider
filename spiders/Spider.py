@@ -1,6 +1,7 @@
 class Spider(object):
     def __init__(self):
         self.max_thread = 1
+        self.breakpoint_download = True
         self.channels = []
 
     def get_page_count(self, _chrome):

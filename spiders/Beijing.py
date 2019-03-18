@@ -5,6 +5,20 @@ class Beijing(Spider):
 
     def __init__(self):
         Spider.__init__(self)
+        self.breakpoint_download = False
+
+    def check_content_status(self, _chrome):
+        content = _chrome.page_source()
+        code = 200
+        if content.find('http://www.beijing.gov.cn/images/404_mzq_20160906.png') != -1:
+            code = 404
+        elif content.find('<h1>Forbidden</h1>') != -1:
+            code = 403
+        elif content.find('503 Service Unavailable') != -1:
+            code = 503
+        elif content.find('最近有可疑的攻击行为，请稍后重试') != -1:
+            code = 999
+        return code
 
     def get_page_count(self, _chrome):
         return int(_chrome.find_class("laypage_last").get_attribute('data-spiders'))
