@@ -180,7 +180,7 @@ def get_channels():
         Logger.warning("共找到%d条可启动channel！" % len(result))
     return list(
         map(lambda data: {"pk_org": data[0], "org_name": data[1], "pk_channel": data[2], "channel_name": data[3],
-                          "web_site_url": data[4], "spider": data[5], "scrapy_page": data[6]},
+                          "web_site_url": data[4], "spider": data[5], "scrapy_page": int(data[6])},
             result))
 
 
